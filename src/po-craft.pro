@@ -1,3 +1,4 @@
+DESTDIR = ../bin
 LIBS += -lopengl32 -lglu32 -L"libs/windows/" -lglut32
 
 SOURCES += \
@@ -12,4 +13,7 @@ HEADERS += \
     vec3f-inl.h
 
 RESOURCES += \
-    res.qrc
+    ../res/res.qrc
+
+OTHER_FILES += \
+    ../res/heightmap.bmp
