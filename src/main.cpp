@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(600, 600);
 
-    terrain = Terrain::loadTerrain(":/res/heightmap.bmp", 30.f);
+    terrain = Terrain::loadTerrain("db/maps/heightmap.png", 30.f);
 
     glutCreateWindow("Penguins Overworld");
     initRendering();

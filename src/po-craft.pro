@@ -11,9 +11,3 @@ HEADERS += \
     terrain-inl.h \
     vec3f.h \
     vec3f-inl.h
-
-RESOURCES += \
-    ../res/res.qrc
-
-OTHER_FILES += \
-    ../res/heightmap.bmp

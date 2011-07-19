@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/res">
-        <file>heightmap.bmp</file>
-    </qresource>
-</RCC>
