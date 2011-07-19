@@ -11,8 +11,7 @@ class Vec3f {
 private:
     float v[3];
 public:
-    Vec3f();
-    Vec3f(float x, float y, float z);
+    Vec3f(float x=0, float y=0, float z=0);
 
     float &operator[](int index);
     float operator[](int index) const;

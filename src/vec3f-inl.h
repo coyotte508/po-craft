@@ -8,10 +8,6 @@
 #include <cmath>
 #include "vec3f.h"
 
-inline Vec3f::Vec3f() {
-
-}
-
 inline Vec3f::Vec3f(float x, float y, float z) {
     v[0] = x;
     v[1] = y;

@@ -31,7 +31,7 @@ void cleanup() {
     delete terrain, terrain = NULL;
 }
 
-void handleKeypress(unsigned char key, int x, int y) {
+void handleKeypress(unsigned char key, int, int) {
     switch (key) {
         case 27: //Escape key
             cleanup();
@@ -39,7 +39,7 @@ void handleKeypress(unsigned char key, int x, int y) {
     }
 }
 
-void handleSpecialKeypress(int key, int x, int y) {
+void handleSpecialKeypress(int key, int, int) {
     switch (key) {
         case GLUT_KEY_LEFT:
             isLeftKeyPressed = true;
@@ -62,7 +62,7 @@ void handleSpecialKeypress(int key, int x, int y) {
     }
 }
 
-void handleSpecialKeyReleased(int key, int x, int y) {
+void handleSpecialKeyReleased(int key, int, int) {
     switch (key) {
         case GLUT_KEY_LEFT:
             isLeftKeyPressed = false;

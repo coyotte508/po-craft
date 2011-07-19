@@ -1,5 +1,12 @@
 DESTDIR = ../bin
-LIBS += -lopengl32 -lglu32 -L"libs/windows/" -lglut32
+
+CONFIG(windows) {
+    LIBS += -L"../libs/windows/"
+    LIBS += -lopengl32 -lglu32 -lglut32
+}
+!CONFIG(windows) {
+    LIBS += -lglut -lGL -lGLU -lX11 -lm
+}
 
 SOURCES += \
     main.cpp \
