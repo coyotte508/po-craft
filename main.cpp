@@ -1,5 +1,3 @@
-#include <cstdlib>
-
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
 #include <GLUT/glut.h>
@@ -9,11 +7,15 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <cstdio>
+#include "terrain.h"
 
 //The number of milliseconds between calls to update
 const int TIMER_MS = 25;
+Terrain *terrain = NULL;
 
 void cleanup() {
+    delete terrain, terrain = NULL;
 }
 
 void handleKeypress(unsigned char key, int x, int y) {
@@ -46,9 +48,18 @@ void drawScene() {
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glTranslatef(0.5f, -0.3f, -1.8f);
-    glRotatef(50, 1, 0, 0);
-    glRotatef(180, 0, 1, 0);
+    glTranslatef(0.0f, 0.0f, -10.0f);
+    glRotatef(30.0f, 1.0f, 0.0f, 0.0f);
+
+    GLfloat ambientColor[] = {0.4f, 0.4f, 0.4f, 1.0f};
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
+
+    GLfloat lightColor0[] = {0.6f, 0.6f, 0.6f, 1.0f};
+    GLfloat lightPos0[] = {-0.5f, 0.8f, 0.1f, 0.0f};
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor0);
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
+
+    terrain->draw();
 
     glutSwapBuffers();
 }
@@ -64,6 +75,8 @@ int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(600, 600);
+
+    terrain = Terrain::loadTerrain(":/res/heightmap.bmp", 20.f);
 
     glutCreateWindow("Penguins Overworld");
     initRendering();
