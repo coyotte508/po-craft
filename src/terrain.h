@@ -19,6 +19,8 @@ public:
     //Returns the height at (x, z)
     float getHeight(int x, int z);
 
+    float heightAt(float x, float z);
+
     //Computes the normals, if they haven't been computed yet
     void computeNormals();
     //Returns the normal at (x, z)

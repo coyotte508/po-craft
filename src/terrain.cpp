@@ -108,6 +108,46 @@ void Terrain::computeNormals() {
     computedNormals = true;
 }
 
+float Terrain::heightAt(float x, float z)
+{
+    //Make (x, z) lie within the bounds of the terrain
+    if (x < 0) {
+        x = 0;
+    } else if (x > width() - 1) {
+        x = width() - 1;
+    }
+
+    if (z < 0) {
+        z = 0;
+    } else if (z > length() - 1) {
+        z = length() - 1;
+    }
+
+    //Compute the grid cell in which (x, z) lies and how close we are to the
+    //left and outward edges
+    int leftX = (int)x;
+    if (leftX == width() - 1) {
+        leftX--;
+    }
+    float fracX = x - leftX;
+
+    int outZ = (int)z;
+    if (outZ == width() - 1) {
+        outZ--;
+    }
+    float fracZ = z - outZ;
+
+    //Compute the four heights for the grid cell
+    float h11 = getHeight(leftX, outZ);
+    float h12 = getHeight(leftX, outZ + 1);
+    float h21 = getHeight(leftX + 1, outZ);
+    float h22 = getHeight(leftX + 1, outZ + 1);
+
+    //Take a weighted average of the four heights
+    return (1 - fracX) * ((1 - fracZ) * h11 + fracZ * h12) +
+            fracX * ((1 - fracZ) * h21 + fracZ * h22);
+}
+
 Terrain *Terrain::loadTerrain(const std::string &filename, float height)
 {
     QImage image(filename.c_str());
@@ -131,16 +171,9 @@ Terrain *Terrain::loadTerrain(const std::string &filename, float height)
 
 void Terrain::draw()
 {
-    glPushMatrix();
-    float scale = 5.0f / std::max(width() - 1, length() - 1);
-    glScalef(scale, scale, scale);
-    glTranslatef(-(float)(width() - 1) / 2,
-                 0.0f,
-                 -(float)(length() - 1) / 2);
-
+    glDisable(GL_TEXTURE_2D);
     glColor3f(0.3f, 0.9f, 0.0f);
     for(int z = 0; z < length() - 1; z++) {
-        //Makes OpenGL draw a triangle at every three consecutive vertices
         glBegin(GL_TRIANGLE_STRIP);
         for(int x = 0; x < width(); x++) {
             Vec3f normal = getNormal(x, z);
@@ -152,5 +185,4 @@ void Terrain::draw()
         }
         glEnd();
     }
-    glPopMatrix();
 }
