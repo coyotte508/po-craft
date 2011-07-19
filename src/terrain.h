@@ -11,8 +11,12 @@ public:
     Terrain(int w2, int l2);
     ~Terrain();
 
-    int width();
-    int length();
+    /* Returns raw width */
+    int rawWidth();
+    int rawLength();
+    /*Returns coordinates width */
+    float width();
+    float length();
 
     //Sets the height at (x, z) to y
     void setHeight(int x, int z, float y);
@@ -29,7 +33,12 @@ public:
     //Draws the terrain on the scene
     void draw();
 
-    static Terrain *loadTerrain(const std::string &filename, float height);
+    /**
+      * Creates a terrain from a heightmap, with height range @p height,
+      * and width @p width. Length is calculated automatically as the image
+      * is scaled uniformly
+      */
+    static Terrain *loadTerrain(const std::string &filename, float height, float width);
 private:
     //Computes the offset in the array from x and z given
     int offset(int x, int z);
@@ -39,6 +48,7 @@ private:
     float* hs; //Heights
     Vec3f* normals;
     bool computedNormals; //Whether normals is up-to-date
+    float scale, scaledWidth, scaledLength;
 };
 
 #include "terrain-inl.h"

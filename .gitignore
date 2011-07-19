@@ -2,3 +2,4 @@
 *-build-desktop
 bin/*.exe
 bin/*.dll
+bin/po-craft

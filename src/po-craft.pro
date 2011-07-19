@@ -11,10 +11,14 @@ CONFIG(windows) {
 SOURCES += \
     main.cpp \
     terrain.cpp \
-    vec3f.cpp
+    vec3f.cpp \
+    ball.cpp \
+    text3d.cpp
 
 HEADERS += \
     terrain.h \
     terrain-inl.h \
     vec3f.h \
-    vec3f-inl.h
+    vec3f-inl.h \
+    ball.h \
+    text3d.h

@@ -7,12 +7,15 @@
 
 #include <cstdlib>
 #include <ctime>
-#include <cstdio>
+#include <sstream>
+#include "text3d.h"
 #include "terrain.h"
+#include "ball.h"
 
 //The number of milliseconds between calls to update
 const int TIMER_MS = 25;
 Terrain *terrain = NULL;
+Ball ball;
 float _angle = 0;
 bool isRightKeyPressed = false, isLeftKeyPressed = false;
 
@@ -28,6 +31,7 @@ Dir angleDir;
 const float TERRAIN_WIDTH = 50.0f;
 
 void cleanup() {
+    t3dCleanup();
     delete terrain, terrain = NULL;
 }
 
@@ -92,6 +96,8 @@ void initRendering() {
     glEnable(GL_NORMALIZE);
     glEnable(GL_COLOR_MATERIAL);
     glShadeModel(GL_SMOOTH);
+
+    t3dInit();
 }
 
 void handleResize(int w, int h) {
@@ -101,19 +107,33 @@ void handleResize(int w, int h) {
     gluPerspective(45.0, (float)w / (float)h, 1.0, 200.0);
 }
 
+template<class T>
+void drawVal (const std::string &desc, T val) {
+    std::ostringstream oss;
+    oss << desc << val;
+    std::string str = oss.str();
+
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_LIGHTING);
+    glColor3f(1.0f, 1.0f, 0.0f);
+    glPushMatrix();
+    glTranslatef(0.0f, 1.7f, -5.0f);
+    glScalef(0.2f, 0.2f, 0.2f);
+    t3dDraw2D(str, 0, 0);
+    glPopMatrix();
+    glEnable(GL_LIGHTING);
+}
+
 void drawScene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    //The scaling factor for the terrain
-    float scale = TERRAIN_WIDTH / (terrain->width() - 1);
-
-    glTranslatef(0, 0, -1.0f * scale * (terrain->length() - 1));
+    glTranslatef(0, 0, -1.0f * TERRAIN_WIDTH);
     glRotatef(30, 1, 0, 0);
     glRotatef(_angle, 0, 1, 0);
-    glTranslatef(-TERRAIN_WIDTH / 2, 0, -scale * (terrain->length() - 1) / 2);
+    glTranslatef(-TERRAIN_WIDTH / 2, 0, -TERRAIN_WIDTH / 2);
 
     GLfloat ambientColor[] = {0.4f, 0.4f, 0.4f, 1.0f};
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
@@ -124,8 +144,9 @@ void drawScene() {
     glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
 
     //Draw the terrain
-    glScalef(scale, scale, scale);
     terrain->draw();
+    //And the ball!
+    ball.draw();
 
     glutSwapBuffers();
 }
@@ -144,9 +165,10 @@ int main(int argc, char** argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(600, 600);
 
-    terrain = Terrain::loadTerrain("db/maps/heightmap.png", 30.f);
+    terrain = Terrain::loadTerrain("db/maps/heightmap.png", 30.f, TERRAIN_WIDTH);
+    ball.setTerrain(terrain);
 
-    glutCreateWindow("Penguins Overworld");
+    glutCreateWindow("Penguins Craft");
     initRendering();
 
     glutDisplayFunc(drawScene);

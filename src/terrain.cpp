@@ -14,6 +14,9 @@ Terrain::Terrain(int w2, int l2)
 {
     w = w2;
     l = l2;
+    scale = 1.0f;
+    scaledWidth = w2-1;
+    scaledLength = l2-1;
 
     hs = new float[l*w];
     normals = new Vec3f[l*w];
@@ -110,29 +113,31 @@ void Terrain::computeNormals() {
 
 float Terrain::heightAt(float x, float z)
 {
+    x/=scale;
+    z/=scale;
     //Make (x, z) lie within the bounds of the terrain
     if (x < 0) {
         x = 0;
-    } else if (x > width() - 1) {
-        x = width() - 1;
+    } else if (x > rawWidth() - 1) {
+        x = rawWidth() - 1;
     }
 
     if (z < 0) {
         z = 0;
-    } else if (z > length() - 1) {
-        z = length() - 1;
+    } else if (z > rawLength() - 1) {
+        z = rawLength() - 1;
     }
 
     //Compute the grid cell in which (x, z) lies and how close we are to the
     //left and outward edges
     int leftX = (int)x;
-    if (leftX == width() - 1) {
+    if (leftX == rawWidth() - 1) {
         leftX--;
     }
     float fracX = x - leftX;
 
     int outZ = (int)z;
-    if (outZ == width() - 1) {
+    if (outZ == rawWidth() - 1) {
         outZ--;
     }
     float fracZ = z - outZ;
@@ -144,15 +149,15 @@ float Terrain::heightAt(float x, float z)
     float h22 = getHeight(leftX + 1, outZ + 1);
 
     //Take a weighted average of the four heights
-    return (1 - fracX) * ((1 - fracZ) * h11 + fracZ * h12) +
-            fracX * ((1 - fracZ) * h21 + fracZ * h22);
+    return ((1 - fracX) * ((1 - fracZ) * h11 + fracZ * h12) +
+            fracX * ((1 - fracZ) * h21 + fracZ * h22)) * scale;
 }
 
-Terrain *Terrain::loadTerrain(const std::string &filename, float height)
+Terrain *Terrain::loadTerrain(const std::string &filename, float height, float side)
 {
     QImage image(filename.c_str());
 
-    if (image.isNull()) {
+    if (image.isNull() || image.width() <= 1 || image.height() <= 1) {
         return NULL;
     }
 
@@ -166,16 +171,21 @@ Terrain *Terrain::loadTerrain(const std::string &filename, float height)
     }
 
     t->computeNormals();
+    t->scale = side/(t->rawWidth()-1);
+    t->scaledWidth = (t->rawWidth()-1)*t->scale;
+    t->scaledLength = (t->rawLength()-1)*t->scale;
     return t;
 }
 
 void Terrain::draw()
 {
+    glPushMatrix();
     glDisable(GL_TEXTURE_2D);
     glColor3f(0.3f, 0.9f, 0.0f);
-    for(int z = 0; z < length() - 1; z++) {
+    glScalef(scale, scale, scale);
+    for(int z = 0; z < rawLength() - 1; z++) {
         glBegin(GL_TRIANGLE_STRIP);
-        for(int x = 0; x < width(); x++) {
+        for(int x = 0; x < rawWidth(); x++) {
             Vec3f normal = getNormal(x, z);
             glNormal3f(normal[0], normal[1], normal[2]);
             glVertex3f(x, getHeight(x, z), z);
@@ -185,4 +195,5 @@ void Terrain::draw()
         }
         glEnd();
     }
+    glPopMatrix();
 }

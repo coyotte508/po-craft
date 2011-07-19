@@ -23,18 +23,28 @@ inline void Terrain::setHeight(int x, int z, float y) {
 }
 
 //Returns the width of the terrain
-inline int Terrain::width() {
+inline int Terrain::rawWidth() {
     return w;
 }
 
 //Returns the length of the terrain
-inline int Terrain::length() {
+inline int Terrain::rawLength() {
     return l;
+}
+
+//Returns the width of the terrain
+inline float Terrain::width() {
+    return scaledWidth;
+}
+
+//Returns the length of the terrain
+inline float Terrain::length() {
+    return scaledLength ;
 }
 
 //Computes the offset in the array from x and z given
 inline int Terrain::offset(int x, int z) {
-    return z*width() + x;
+    return z*rawWidth() + x;
 }
 
 #endif // TERRAININL_H
