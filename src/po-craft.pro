@@ -27,4 +27,5 @@ HEADERS += \
     ball.h \
     text3d.h \
     game.h \
-    dirs.h
+    dirs.h \
+    mathconst.h

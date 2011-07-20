@@ -1,12 +1,14 @@
 #include <SFML/Window.hpp>
 
 #include "game.h"
+#include "mathconst.h"
 #include "terrain.h"
 #include "ball.h"
 #include "dirs.h"
 
 Game::Game() {
     cameraAngle = 0.f;
+    xDir = zDir = 0;
     cameraRotateDirection = Center;
     terrain = NULL;
 }
@@ -47,6 +49,12 @@ void Game::draw() {
     ball.draw();
 }
 
+void Game::setBallDirection(int horDirection, int vertDirection)
+{
+    xDir = horDirection;
+    zDir = vertDirection;
+}
+
 void Game::setCameraRotate(int direction)
 {
     cameraRotateDirection = direction;
@@ -55,4 +63,18 @@ void Game::setCameraRotate(int direction)
 void Game::update(int time)
 {
     cameraAngle += time * .08f * cameraRotateDirection;
+
+    if (xDir || zDir) {
+        float div = 1.0f;
+
+        if (xDir && zDir) {
+            div = SQRT2INV;
+        }
+
+        div *= time * 0.01f;
+
+        float sina = sin(cameraAngle*PI/180);
+        float cosa = cos(cameraAngle*PI/180);
+        ball.advance( (xDir * cosa - zDir * sina)*div, (zDir * cosa + xDir * sina)*div );
+    }
 }

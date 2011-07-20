@@ -37,6 +37,9 @@ void cleanup() {
 
 void handleSpecialKeypress() {
     game.setCameraRotate(Left * App.GetInput().IsKeyDown(sf::Key::Left) + Right * App.GetInput().IsKeyDown(sf::Key::Right));
+
+    game.setBallDirection(Left * App.GetInput().IsKeyDown(sf::Key::Q) + Right * App.GetInput().IsKeyDown(sf::Key::D),
+                          Left * App.GetInput().IsKeyDown(sf::Key::Z) + Right * App.GetInput().IsKeyDown(sf::Key::S));
 }
 
 void postRedisplay() {

@@ -57,3 +57,11 @@ void Ball::draw()
     glutSolidSphere(radius, 15, 15);
     glPopMatrix();
 }
+
+void Ball::advance(float xdiff, float zdiff)
+{
+    x += xdiff;
+    z += zdiff;
+
+    checkPos();
+}

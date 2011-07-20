@@ -12,6 +12,8 @@ public:
 
     /* Reposition the ball inside the terrain if its out */
     void checkPos();
+    /* advances the ball */
+    void advance(float xdiff, float zdiff);
 
     float radius;
     float x, z, y;
