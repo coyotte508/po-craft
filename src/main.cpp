@@ -1,12 +1,13 @@
-#include <SFML/Window.hpp>
+#include <SDL/SDL.h>
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
+#include <QImage>
 #include <cstdlib>
-#include <ctime>
+#include <cstdio>
 #include <sstream>
 #include <vector>
 #include "text3d.h"
@@ -16,18 +17,18 @@
 typedef void (*TimerFunc)(int elapsed);
 
 struct TimeContainer {
-    clock_t timeStarted;
-    clock_t timeExpected;
+    Uint32 timeStarted;
+    Uint32 timeExpected;
     TimerFunc function;
 };
 
 //The number of milliseconds between calls to update
 const int TIMER_MS = 25;
-sf::Window App;
 Game game;
 std::vector<TimeContainer> timeFuncs;
+Uint8 *keystate = SDL_GetKeyState(NULL);
 bool needDraw = false;
-
+char xvel(0), yvel(0);
 //The width of the terrain in units, after scaling
 const float TERRAIN_WIDTH = 50.0f;
 
@@ -36,10 +37,9 @@ void cleanup() {
 }
 
 void handleSpecialKeypress() {
-    game.setCameraRotate(Left * App.GetInput().IsKeyDown(sf::Key::Left) + Right * App.GetInput().IsKeyDown(sf::Key::Right));
-
-    game.setBallDirection(Left * App.GetInput().IsKeyDown(sf::Key::Q) + Right * App.GetInput().IsKeyDown(sf::Key::D),
-                          Left * App.GetInput().IsKeyDown(sf::Key::Z) + Right * App.GetInput().IsKeyDown(sf::Key::S));
+    game.setCameraRotate(Left * keystate[SDLK_LEFT] + Right * keystate[SDLK_RIGHT]);
+    game.setBallDirection(Left * keystate[SDLK_q] + Right * keystate[SDLK_d],
+                          Left * keystate[SDLK_z] + Right * keystate[SDLK_s]);
 }
 
 void postRedisplay() {
@@ -83,13 +83,13 @@ void drawVal (const std::string &desc, T val) {
 
 void drawScene() {
     game.draw();
-    App.Display();
+    SDL_GL_SwapBuffers();
 }
 
 void timerFunc(int ms, TimerFunc func) {
     TimeContainer cont;
-    cont.timeStarted = clock();
-    cont.timeExpected = cont.timeStarted + (ms*CLOCKS_PER_SEC/1000);
+    cont.timeStarted = SDL_GetTicks();
+    cont.timeExpected = cont.timeStarted + ms;
     cont.function = func;
 
     for (int i = timeFuncs.size(); i >= 0; i--) {
@@ -101,19 +101,22 @@ void timerFunc(int ms, TimerFunc func) {
 }
 
 void dealWithTimers() {
-    while (!timeFuncs.empty() && timeFuncs.front().timeExpected < clock()) {
+    while (!timeFuncs.empty() && timeFuncs.front().timeExpected < SDL_GetTicks()) {
         TimeContainer &ref =  timeFuncs.front();
-        ref.function((ref.timeExpected - ref.timeStarted)*1000/CLOCKS_PER_SEC);
+        ref.function(ref.timeExpected - ref.timeStarted);
         timeFuncs.erase(timeFuncs.begin(), timeFuncs.begin()+1);
     }
 }
 
 void pauseTimers() {
     if (timeFuncs.empty()) {
-        sf::Sleep(0.001f);
+        SDL_Delay(1);
     } else {
         TimeContainer &ref = timeFuncs.front();
-        sf::Sleep(float(ref.timeExpected - clock())/CLOCKS_PER_SEC);
+        Uint32 ticks = SDL_GetTicks();
+        if (ticks < ref.timeExpected) {
+            SDL_Delay(ref.timeExpected-SDL_GetTicks());
+        }
     }
 }
 
@@ -124,13 +127,23 @@ void update(int time) {
 }
 
 int main(int argc, char** argv) {
-    (void) argc;
-    (void) argv;
-
     srand((unsigned int)time(0)); //Seed the random number generator
 
-    App.Create(sf::VideoMode(800, 600, 32), "Penguins Craft");
-    App.UseVerticalSync(false);
+    glutInit(&argc, argv);
+
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+    SDL_WM_SetCaption("Penguins Craft", "Penguins Craft");
+    {
+        QImage image("db/icon.png");
+        image = image.convertToFormat(QImage::Format_ARGB32);
+        SDL_Surface *icon = SDL_CreateRGBSurfaceFrom(image.bits(), image.width(), image.height(),
+                                                     image.depth(), image.bytesPerLine(), 0x00FF0000,
+                                                     0x0000FF00, 0x000000FF, 0xFF000000);
+        SDL_WM_SetIcon(icon, NULL);
+    }
+
+    SDL_SetVideoMode(800, 600, 32, SDL_HWSURFACE|SDL_OPENGL|SDL_GL_DOUBLEBUFFER);
+
     handleResize(800, 600);
 
     game.loadTerrain("db/maps/heightmap.png", 30.f, TERRAIN_WIDTH);
@@ -138,17 +151,18 @@ int main(int argc, char** argv) {
     initRendering();
     timerFunc(TIMER_MS, update);
 
-    while (App.IsOpened()) {
-        sf::Event Event;
-        while (App.GetEvent(Event))
+    bool running = true;
+    while (running) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
         {
-            if (Event.Type == sf::Event::Closed || ((Event.Type == sf::Event::KeyPressed) && (Event.Key.Code == sf::Key::Escape))) {
-                App.Close();
+            if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)) {
+                running = false;
             }
-            if (Event.Type == sf::Event::Resized) {
-                handleResize(Event.Size.Width, Event.Size.Height);
+            if (event.type == SDL_VIDEORESIZE) {
+                handleResize(event.resize.w, event.resize.h);
             }
-            if (Event.Type == sf::Event::KeyPressed || Event.Type == sf::Event::KeyReleased) {
+            if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
                 handleSpecialKeypress();
             }
         }
