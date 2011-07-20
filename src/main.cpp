@@ -1,92 +1,46 @@
+#include <SFML/Window.hpp>
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
-
 #include <cstdlib>
 #include <ctime>
 #include <sstream>
+#include <vector>
 #include "text3d.h"
-#include "terrain.h"
-#include "ball.h"
+#include "game.h"
+#include "dirs.h"
+
+typedef void (*TimerFunc)(int elapsed);
+
+struct TimeContainer {
+    clock_t timeStarted;
+    clock_t timeExpected;
+    TimerFunc function;
+};
 
 //The number of milliseconds between calls to update
 const int TIMER_MS = 25;
-Terrain *terrain = NULL;
-Ball ball;
-float _angle = 0;
-bool isRightKeyPressed = false, isLeftKeyPressed = false;
-
-enum Dir {
-    Left = -1,
-    Center = 0,
-    Right = 1
-};
-
-Dir angleDir;
+sf::Window App;
+Game game;
+std::vector<TimeContainer> timeFuncs;
+bool needDraw = false;
 
 //The width of the terrain in units, after scaling
 const float TERRAIN_WIDTH = 50.0f;
 
 void cleanup() {
     t3dCleanup();
-    delete terrain, terrain = NULL;
 }
 
-void handleKeypress(unsigned char key, int, int) {
-    switch (key) {
-        case 27: //Escape key
-            cleanup();
-            exit(0);
-    }
+void handleSpecialKeypress() {
+    game.setCameraRotate(Left * App.GetInput().IsKeyDown(sf::Key::Left) + Right * App.GetInput().IsKeyDown(sf::Key::Right));
 }
 
-void handleSpecialKeypress(int key, int, int) {
-    switch (key) {
-        case GLUT_KEY_LEFT:
-            isLeftKeyPressed = true;
-            if (isRightKeyPressed) {
-                angleDir = Center;
-            }
-            else {
-                angleDir = Left;
-            }
-            break;
-        case GLUT_KEY_RIGHT:
-            isRightKeyPressed = true;
-            if (isLeftKeyPressed) {
-                angleDir = Center;
-            }
-            else {
-                angleDir = Right;
-            }
-            break;
-    }
-}
-
-void handleSpecialKeyReleased(int key, int, int) {
-    switch (key) {
-        case GLUT_KEY_LEFT:
-            isLeftKeyPressed = false;
-            if (isRightKeyPressed) {
-                angleDir = Right;
-            }
-            else {
-                angleDir = Center;
-            }
-            break;
-        case GLUT_KEY_RIGHT:
-            isRightKeyPressed = false;
-            if (isLeftKeyPressed) {
-                angleDir = Left;
-            }
-            else {
-                angleDir = Center;
-            }
-            break;
-    }
+void postRedisplay() {
+    needDraw = true;
 }
 
 void initRendering() {
@@ -104,7 +58,7 @@ void handleResize(int w, int h) {
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0, (float)w / (float)h, 1.0, 200.0);
+    gluPerspective(45.0, (float)w / (float)h, 1.f, 300.f);
 }
 
 template<class T>
@@ -125,59 +79,85 @@ void drawVal (const std::string &desc, T val) {
 }
 
 void drawScene() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    glTranslatef(0, 0, -1.0f * TERRAIN_WIDTH);
-    glRotatef(30, 1, 0, 0);
-    glRotatef(_angle, 0, 1, 0);
-    glTranslatef(-TERRAIN_WIDTH / 2, 0, -TERRAIN_WIDTH / 2);
-
-    GLfloat ambientColor[] = {0.4f, 0.4f, 0.4f, 1.0f};
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
-
-    GLfloat lightColor0[] = {0.6f, 0.6f, 0.6f, 1.0f};
-    GLfloat lightPos0[] = {-0.5f, 0.8f, 0.1f, 0.0f};
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor0);
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
-
-    //Draw the terrain
-    terrain->draw();
-    //And the ball!
-    ball.draw();
-
-    glutSwapBuffers();
+    game.draw();
+    App.Display();
 }
 
-void update(int) {
-    glutPostRedisplay();
-    glutTimerFunc(TIMER_MS, update, 0);
+void timerFunc(int ms, TimerFunc func) {
+    TimeContainer cont;
+    cont.timeStarted = clock();
+    cont.timeExpected = cont.timeStarted + (ms*CLOCKS_PER_SEC/1000);
+    cont.function = func;
 
-    _angle += angleDir * 50.f * (float)TIMER_MS / 1000;
+    for (int i = timeFuncs.size(); i >= 0; i--) {
+        if (i == 0 || cont.timeExpected > timeFuncs[i-1].timeExpected) {
+            timeFuncs.insert(timeFuncs.begin() + i, cont);
+            break;
+        }
+    }
+}
+
+void dealWithTimers() {
+    while (!timeFuncs.empty() && timeFuncs.front().timeExpected < clock()) {
+        TimeContainer &ref =  timeFuncs.front();
+        ref.function((ref.timeExpected - ref.timeStarted)*1000/CLOCKS_PER_SEC);
+        timeFuncs.erase(timeFuncs.begin(), timeFuncs.begin()+1);
+    }
+}
+
+void pauseTimers() {
+    if (timeFuncs.empty()) {
+        sf::Sleep(0.001f);
+    } else {
+        TimeContainer &ref = timeFuncs.front();
+        sf::Sleep(float(ref.timeExpected - clock())/CLOCKS_PER_SEC);
+    }
+}
+
+void update(int time) {
+    game.update(time);
+    postRedisplay();
+    timerFunc(TIMER_MS, update);
 }
 
 int main(int argc, char** argv) {
+    (void) argc;
+    (void) argv;
+
     srand((unsigned int)time(0)); //Seed the random number generator
 
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowSize(600, 600);
+    App.Create(sf::VideoMode(800, 600, 32), "Penguins Craft");
+    App.UseVerticalSync(false);
+    handleResize(800, 600);
 
-    terrain = Terrain::loadTerrain("db/maps/heightmap.png", 30.f, TERRAIN_WIDTH);
-    ball.setTerrain(terrain);
+    game.loadTerrain("db/maps/heightmap.png", 30.f, TERRAIN_WIDTH);
 
-    glutCreateWindow("Penguins Craft");
     initRendering();
+    timerFunc(TIMER_MS, update);
 
-    glutDisplayFunc(drawScene);
-    glutKeyboardFunc(handleKeypress);
-    glutReshapeFunc(handleResize);
-    glutTimerFunc(TIMER_MS, update, 0);
-    glutSpecialFunc(handleSpecialKeypress);
-    glutSpecialUpFunc(handleSpecialKeyReleased);
+    while (App.IsOpened()) {
+        sf::Event Event;
+        while (App.GetEvent(Event))
+        {
+            if (Event.Type == sf::Event::Closed || ((Event.Type == sf::Event::KeyPressed) && (Event.Key.Code == sf::Key::Escape))) {
+                App.Close();
+            }
+            if (Event.Type == sf::Event::Resized) {
+                handleResize(Event.Size.Width, Event.Size.Height);
+            }
+            if (Event.Type == sf::Event::KeyPressed || Event.Type == sf::Event::KeyReleased) {
+                handleSpecialKeypress();
+            }
+        }
+        dealWithTimers();
+        if (needDraw) {
+            drawScene();
+            needDraw = false;
+        }
+        pauseTimers();
+    }
 
-    glutMainLoop();
-    return 0;
+    cleanup();
+
+    return EXIT_SUCCESS;
 }
