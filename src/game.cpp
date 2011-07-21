@@ -39,8 +39,10 @@ void Game::draw() {
 
     if (cameraMode == OnTerrain) {
         camera.project(*terrain);
-    } else {
+    } else if (cameraMode == OnCharacter){
         camera.project(ball);
+    } else if (cameraMode == BehindCharacter) {
+        camera.projectBehind(ball);
     }
 
     GLfloat ambientColor[] = {0.4f, 0.4f, 0.4f, 1.0f};
@@ -89,7 +91,7 @@ void Game::update(int time)
             div = SQRT2INV;
         }
 
-        div *= time * 0.01f;
+        div *= time * 0.007f;
 
         float sina = sin(camera.angle*PI/180);
         float cosa = cos(camera.angle*PI/180);

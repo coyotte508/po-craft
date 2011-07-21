@@ -33,6 +33,7 @@ private:
     enum CameraMode {
         OnCharacter,
         OnTerrain,
+        BehindCharacter,
         LastCameraMode
     };
 

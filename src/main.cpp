@@ -65,7 +65,7 @@ void handleResize(int w, int h) {
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0, (float)w / (float)h, 0.5f, 300.f);
+    gluPerspective(45.0, (float)w / (float)h, 0.1f, 300.f);
 }
 
 template<class T>
