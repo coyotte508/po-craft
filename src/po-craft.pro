@@ -9,7 +9,6 @@ CONFIG(windows) {
     LIBS += -lglut -lGL -lGLU -lX11 -lm -lSDL
 }
 
-LIBS += -lsfml-window -lsfml-system
 DEFINES += _WCHAR_T_DEFINED GLUT_NO_WARNING_DISABLE GLUT_BUILDING_LIB
 DEFINES -= QT_NEEDS_QMAIN
 SOURCES += \
