@@ -3,7 +3,7 @@ DESTDIR = ../bin
 CONFIG(windows) {
     INCLUDEPATH += ../include/windows/
     LIBS += -L"../lib/windows/"
-    LIBS += -lopengl32 -lglu32 -lglut32
+    LIBS += -lopengl32 -lglu32 -lglut32 -lSDL -lSDLmain
 }
 !CONFIG(windows) {
     LIBS += -lglut -lGL -lGLU -lX11 -lm -lSDL
@@ -11,6 +11,7 @@ CONFIG(windows) {
 
 LIBS += -lsfml-window -lsfml-system
 DEFINES += _WCHAR_T_DEFINED GLUT_NO_WARNING_DISABLE GLUT_BUILDING_LIB
+DEFINES -= QT_NEEDS_QMAIN
 SOURCES += \
     main.cpp \
     terrain.cpp \

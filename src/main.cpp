@@ -1,14 +1,18 @@
 #include <SDL/SDL.h>
+#ifdef main
+#undef main
+#endif
+#include <QImage>
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
-#include <QImage>
 #include <cstdlib>
 #include <cstdio>
 #include <sstream>
+#include <ctime>
 #include <vector>
 #include "text3d.h"
 #include "game.h"
@@ -38,8 +42,8 @@ void cleanup() {
 
 void handleSpecialKeypress() {
     game.setCameraRotate(Left * keystate[SDLK_LEFT] + Right * keystate[SDLK_RIGHT]);
-    game.setBallDirection(Left * keystate[SDLK_q] + Right * keystate[SDLK_d],
-                          Left * keystate[SDLK_z] + Right * keystate[SDLK_s]);
+    game.setBallDirection(Left * keystate[SDLK_a] + Right * keystate[SDLK_d],
+                          Left * keystate[SDLK_w] + Right * keystate[SDLK_s]);
 }
 
 void postRedisplay() {
