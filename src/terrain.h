@@ -12,11 +12,11 @@ public:
     ~Terrain();
 
     /* Returns raw width */
-    int rawWidth();
-    int rawLength();
+    int rawWidth() const;
+    int rawLength() const;
     /*Returns coordinates width */
-    float width();
-    float length();
+    float width() const;
+    float length() const;
 
     //Sets the height at (x, z) to y
     void setHeight(int x, int z, float y);

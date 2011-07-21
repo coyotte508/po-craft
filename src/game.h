@@ -3,6 +3,7 @@
 
 #include <string>
 #include "ball.h"
+#include "camera.h"
 
 class Terrain;
 
@@ -26,6 +27,7 @@ private:
     Ball ball;
     int xDir, zDir;
     Terrain *terrain;
+    Camera camera;
 };
 
 #endif // GAME_H

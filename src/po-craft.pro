@@ -18,7 +18,8 @@ SOURCES += \
     vec3f.cpp \
     ball.cpp \
     text3d.cpp \
-    game.cpp
+    game.cpp \
+    camera.cpp
 
 HEADERS += \
     terrain.h \
@@ -29,4 +30,6 @@ HEADERS += \
     text3d.h \
     game.h \
     dirs.h \
-    mathconst.h
+    mathconst.h \
+    camera.h \
+    macro.h

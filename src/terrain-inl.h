@@ -23,22 +23,22 @@ inline void Terrain::setHeight(int x, int z, float y) {
 }
 
 //Returns the width of the terrain
-inline int Terrain::rawWidth() {
+inline int Terrain::rawWidth() const {
     return w;
 }
 
 //Returns the length of the terrain
-inline int Terrain::rawLength() {
+inline int Terrain::rawLength() const {
     return l;
 }
 
 //Returns the width of the terrain
-inline float Terrain::width() {
+inline float Terrain::width() const {
     return scaledWidth;
 }
 
 //Returns the length of the terrain
-inline float Terrain::length() {
+inline float Terrain::length() const {
     return scaledLength ;
 }
 

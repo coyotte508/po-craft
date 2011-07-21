@@ -1,6 +1,9 @@
 #ifndef BALL_H
 #define BALL_H
 
+#include "vec3f.h"
+#include "macro.h"
+
 class Terrain;
 
 class Ball {
@@ -16,7 +19,9 @@ public:
     void advance(float xdiff, float zdiff);
 
     float radius;
-    float x, z, y;
+    Vec3f pos;
+
+    SETVEC3FCOORDS(pos, x, y, z)
 private:
     Terrain *terrain;
 };

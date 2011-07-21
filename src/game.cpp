@@ -1,4 +1,9 @@
-#include <SFML/Window.hpp>
+#ifdef __APPLE__
+#include <OpenGL/OpenGL.h>
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
 
 #include "game.h"
 #include "mathconst.h"
@@ -7,7 +12,6 @@
 #include "dirs.h"
 
 Game::Game() {
-    cameraAngle = 0.f;
     xDir = zDir = 0;
     cameraRotateDirection = Center;
     terrain = NULL;
@@ -32,10 +36,7 @@ void Game::draw() {
         return;
     }
 
-    glTranslatef(0, 0, -1.0f * terrain->width());
-    glRotatef(30, 1, 0, 0);
-    glRotatef(cameraAngle, 0, 1, 0);
-    glTranslatef(-terrain->width() / 2, 0, -terrain->width() / 2);
+    camera.project(*terrain);
 
     GLfloat ambientColor[] = {0.4f, 0.4f, 0.4f, 1.0f};
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
@@ -62,7 +63,7 @@ void Game::setCameraRotate(int direction)
 
 void Game::update(int time)
 {
-    cameraAngle += time * .08f * cameraRotateDirection;
+    camera.rotate(time * .08f * cameraRotateDirection);
 
     if (xDir || zDir) {
         float div = 1.0f;
@@ -73,8 +74,8 @@ void Game::update(int time)
 
         div *= time * 0.01f;
 
-        float sina = sin(cameraAngle*PI/180);
-        float cosa = cos(cameraAngle*PI/180);
+        float sina = sin(camera.angle*PI/180);
+        float cosa = cos(camera.angle*PI/180);
         ball.advance( (xDir * cosa - zDir * sina)*div, (zDir * cosa + xDir * sina)*div );
     }
 }
