@@ -8,7 +8,7 @@ class Terrain;
 
 class Ball {
 public:
-    Ball(float radius = 0.2f);
+    Ball(float radius = 0.4f);
 
     void setTerrain(Terrain *terrain);
     void draw();

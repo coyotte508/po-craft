@@ -13,7 +13,7 @@
 
 Game::Game() {
     xDir = zDir = 0;
-    cameraRotateDirection = Center;
+    cameraRotateDirectionX = cameraRotateDirectionY = Center;
     terrain = NULL;
     cameraMode = OnTerrain;
 }
@@ -66,9 +66,10 @@ void Game::setBallDirection(int horDirection, int vertDirection)
     zDir = vertDirection;
 }
 
-void Game::setCameraRotate(int direction)
+void Game::setCameraRotate(int x, int y)
 {
-    cameraRotateDirection = direction;
+    cameraRotateDirectionX = x;
+    cameraRotateDirectionY = y;
 }
 
 void Game::alternateCameraMode()
@@ -82,7 +83,7 @@ void Game::alternateCameraMode()
 
 void Game::update(int time)
 {
-    camera.rotate(time * .08f * cameraRotateDirection);
+    camera.rotate(time * .08f * cameraRotateDirectionX, time * .08f * cameraRotateDirectionY);
 
     if (xDir || zDir) {
         float div = 1.0f;
@@ -93,8 +94,8 @@ void Game::update(int time)
 
         div *= time * 0.007f;
 
-        float sina = sin(camera.angle*PI/180);
-        float cosa = cos(camera.angle*PI/180);
+        float sina = sin(camera.angleY*PI/180);
+        float cosa = cos(camera.angleY*PI/180);
         ball.advance( (xDir * cosa - zDir * sina)*div, (zDir * cosa + xDir * sina)*div );
     }
 }

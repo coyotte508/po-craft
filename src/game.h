@@ -19,12 +19,11 @@ public:
     void update(int time);
     void draw();
 
-    void setCameraRotate (int direction);
+    void setCameraRotate (int directionX, int directionY);
     void setBallDirection (int horDirection, int vertDirection);
     void alternateCameraMode();
 private:
-    float cameraAngle;
-    int cameraRotateDirection;
+    int cameraRotateDirectionX, cameraRotateDirectionY;
     Ball ball;
     int xDir, zDir;
     Terrain *terrain;

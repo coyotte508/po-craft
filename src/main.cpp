@@ -34,14 +34,15 @@ Uint8 *keystate = SDL_GetKeyState(NULL);
 bool needDraw = false;
 char xvel(0), yvel(0);
 //The width of the terrain in units, after scaling
-const float TERRAIN_WIDTH = 50.0f;
+const float TERRAIN_WIDTH = 100.0f;
 
 void cleanup() {
     t3dCleanup();
 }
 
 void handleSpecialKeypress() {
-    game.setCameraRotate(Left * keystate[SDLK_LEFT] + Right * keystate[SDLK_RIGHT]);
+    game.setCameraRotate(Left * keystate[SDLK_UP] + Right * keystate[SDLK_DOWN],
+                         Left * keystate[SDLK_LEFT] + Right * keystate[SDLK_RIGHT]);
     game.setBallDirection(Left * keystate[SDLK_a] + Right * keystate[SDLK_d],
                           Left * keystate[SDLK_w] + Right * keystate[SDLK_s]);
 }
