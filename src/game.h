@@ -21,6 +21,7 @@ public:
 
     void setCameraRotate (int direction);
     void setBallDirection (int horDirection, int vertDirection);
+    void alternateCameraMode();
 private:
     float cameraAngle;
     int cameraRotateDirection;
@@ -28,6 +29,14 @@ private:
     int xDir, zDir;
     Terrain *terrain;
     Camera camera;
+
+    enum CameraMode {
+        OnCharacter,
+        OnTerrain,
+        LastCameraMode
+    };
+
+    int cameraMode;
 };
 
 #endif // GAME_H

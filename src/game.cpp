@@ -15,6 +15,7 @@ Game::Game() {
     xDir = zDir = 0;
     cameraRotateDirection = Center;
     terrain = NULL;
+    cameraMode = OnTerrain;
 }
 
 Game::~Game() {
@@ -36,7 +37,11 @@ void Game::draw() {
         return;
     }
 
-    camera.project(*terrain);
+    if (cameraMode == OnTerrain) {
+        camera.project(*terrain);
+    } else {
+        camera.project(ball);
+    }
 
     GLfloat ambientColor[] = {0.4f, 0.4f, 0.4f, 1.0f};
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
@@ -47,7 +52,10 @@ void Game::draw() {
     glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
 
     terrain->draw();
-    ball.draw();
+
+    if (cameraMode != OnCharacter) {
+        ball.draw();
+    }
 }
 
 void Game::setBallDirection(int horDirection, int vertDirection)
@@ -59,6 +67,15 @@ void Game::setBallDirection(int horDirection, int vertDirection)
 void Game::setCameraRotate(int direction)
 {
     cameraRotateDirection = direction;
+}
+
+void Game::alternateCameraMode()
+{
+    cameraMode += 1;
+
+    if (cameraMode == LastCameraMode) {
+        cameraMode = 0;
+    }
 }
 
 void Game::update(int time)

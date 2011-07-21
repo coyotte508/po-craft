@@ -65,7 +65,7 @@ void handleResize(int w, int h) {
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0, (float)w / (float)h, 1.f, 300.f);
+    gluPerspective(45.0, (float)w / (float)h, 0.5f, 300.f);
 }
 
 template<class T>
@@ -155,19 +155,34 @@ int main(int argc, char** argv) {
     initRendering();
     timerFunc(TIMER_MS, update);
 
+    drawScene();
+
     bool running = true;
     while (running) {
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)) {
+            if (event.type == SDL_QUIT) {
                 running = false;
+                continue;
+            }
+            if (event.type == SDL_KEYDOWN) {
+                if (event.key.keysym.sym == SDLK_r) {
+                    game.alternateCameraMode();
+                    continue;
+                }
+                if (event.key.keysym.sym == SDLK_ESCAPE) {
+                    running = false;
+                    continue;
+                }
             }
             if (event.type == SDL_VIDEORESIZE) {
                 handleResize(event.resize.w, event.resize.h);
+                continue;
             }
             if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
                 handleSpecialKeypress();
+                continue;
             }
         }
         dealWithTimers();
