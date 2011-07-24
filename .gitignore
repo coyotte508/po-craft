@@ -4,3 +4,4 @@ bin/*.exe
 bin/*.dll
 bin/po-craft
 bin/db/maps/heightmap*.png
+bin/*.ini

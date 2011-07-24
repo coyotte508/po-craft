@@ -1,8 +1,9 @@
 #include <SDL/SDL.h>
+#include <SFML/Graphics.hpp>
 #ifdef main
 #undef main
 #endif
-#include <QImage>
+#include <QSettings>
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
 #include <GLUT/glut.h>
@@ -17,6 +18,8 @@
 #include "text3d.h"
 #include "game.h"
 #include "dirs.h"
+#include "menu.h"
+#include "controller.h"
 
 typedef void (*TimerFunc)(int elapsed);
 
@@ -30,21 +33,26 @@ struct TimeContainer {
 const int TIMER_MS = 25;
 Game game;
 std::vector<TimeContainer> timeFuncs;
-Uint8 *keystate = SDL_GetKeyState(NULL);
 bool needDraw = false;
-char xvel(0), yvel(0);
+sf::RenderWindow App;
 //The width of the terrain in units, after scaling
 const float TERRAIN_WIDTH = 100.0f;
+Controller controller;
+Menu menu(App, controller);
 
 void cleanup() {
     t3dCleanup();
 }
 
 void handleSpecialKeypress() {
-    game.setCameraRotate(Left * keystate[SDLK_UP] + Right * keystate[SDLK_DOWN],
-                         Left * keystate[SDLK_LEFT] + Right * keystate[SDLK_RIGHT]);
-    game.setBallDirection(Left * keystate[SDLK_a] + Right * keystate[SDLK_d],
-                          Left * keystate[SDLK_w] + Right * keystate[SDLK_s]);
+    game.setCameraRotate(Left * App.GetInput().IsKeyDown(sf::Key::Up)
+                            + Right * App.GetInput().IsKeyDown(sf::Key::Down),
+                         Left * App.GetInput().IsKeyDown(sf::Key::Left)
+                            + Right * App.GetInput().IsKeyDown(sf::Key::Right));
+    game.setBallDirection(Left * App.GetInput().IsKeyDown(controller.getKey(Controller::MoveCharLeft))
+                            + Right * App.GetInput().IsKeyDown(controller.getKey(Controller::MoveCharRight)),
+                         Left * App.GetInput().IsKeyDown(controller.getKey(Controller::MoveCharUp))
+                            + Right * App.GetInput().IsKeyDown(controller.getKey(Controller::MoveCharDown)));
 }
 
 void postRedisplay() {
@@ -69,26 +77,13 @@ void handleResize(int w, int h) {
     gluPerspective(45.0, (float)w / (float)h, 0.1f, 300.f);
 }
 
-template<class T>
-void drawVal (const std::string &desc, T val) {
-    std::ostringstream oss;
-    oss << desc << val;
-    std::string str = oss.str();
-
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_LIGHTING);
-    glColor3f(1.0f, 1.0f, 0.0f);
-    glPushMatrix();
-    glTranslatef(0.0f, 1.7f, -5.0f);
-    glScalef(0.2f, 0.2f, 0.2f);
-    t3dDraw2D(str, 0, 0);
-    glPopMatrix();
-    glEnable(GL_LIGHTING);
-}
-
 void drawScene() {
     game.draw();
-    SDL_GL_SwapBuffers();
+    if (menu.running()) {
+        menu.draw();
+    }
+
+    App.Display();
 }
 
 void timerFunc(int ms, TimerFunc func) {
@@ -137,17 +132,8 @@ int main(int argc, char** argv) {
     glutInit(&argc, argv);
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
-    SDL_WM_SetCaption("Penguins Craft", "Penguins Craft");
-    {
-        QImage image("db/icon.png");
-        image = image.convertToFormat(QImage::Format_ARGB32);
-        SDL_Surface *icon = SDL_CreateRGBSurfaceFrom(image.bits(), image.width(), image.height(),
-                                                     image.depth(), image.bytesPerLine(), 0x00FF0000,
-                                                     0x0000FF00, 0x000000FF, 0xFF000000);
-        SDL_WM_SetIcon(icon, NULL);
-    }
 
-    SDL_SetVideoMode(800, 600, 32, SDL_HWSURFACE|SDL_OPENGL|SDL_GL_DOUBLEBUFFER);
+    App.Create(sf::VideoMode(800, 600, 32), "Penguins Craft");
 
     handleResize(800, 600);
 
@@ -160,28 +146,35 @@ int main(int argc, char** argv) {
 
     bool running = true;
     while (running) {
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            if (event.type == SDL_QUIT) {
+        sf::Event Event;
+        while (App.GetEvent(Event)) {
+            if (Event.Type == Event.Closed) {
                 running = false;
-                continue;
+                break;
             }
-            if (event.type == SDL_KEYDOWN) {
-                if (event.key.keysym.sym == SDLK_r) {
+            if (Event.Type == Event.KeyPressed) {
+                if (menu.running()) {
+                    menu.handleKeyPress(Event.Key);
+                    continue;
+                }
+                if (Event.Key.Code == sf::Key::Escape) {
+                    running = false;
+                    break;
+                }
+                if (Event.Key.Code == controller.getKey(Controller::AlternateCamera)) {
                     game.alternateCameraMode();
                     continue;
                 }
-                if (event.key.keysym.sym == SDLK_ESCAPE) {
-                    running = false;
+                if (Event.Key.Code == sf::Key::F2) {
+                    menu.start();
                     continue;
                 }
             }
-            if (event.type == SDL_VIDEORESIZE) {
-                handleResize(event.resize.w, event.resize.h);
+            if (Event.Type == Event.Resized) {
+                handleResize(Event.Size.Width, Event.Size.Height);
                 continue;
             }
-            if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
+            if (Event.Type == Event.KeyPressed || Event.Type == Event.KeyReleased) {
                 handleSpecialKeypress();
                 continue;
             }

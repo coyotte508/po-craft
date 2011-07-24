@@ -6,8 +6,10 @@ CONFIG(windows) {
     LIBS += -lopengl32 -lglu32 -lglut32 -lSDL -lSDLmain
 }
 !CONFIG(windows) {
-    LIBS += -lglut -lGL -lGLU -lX11 -lm -lSDL
+    LIBS += -lglut -lGL -lGLU -lX11 -lm -lSDL -lSDL_ttf
 }
+
+LIBS += -lsfml-graphics -lsfml-system
 
 DEFINES += _WCHAR_T_DEFINED GLUT_NO_WARNING_DISABLE GLUT_BUILDING_LIB
 DEFINES -= QT_NEEDS_QMAIN
@@ -18,7 +20,9 @@ SOURCES += \
     ball.cpp \
     text3d.cpp \
     game.cpp \
-    camera.cpp
+    camera.cpp \
+    menu.cpp \
+    controller.cpp
 
 HEADERS += \
     terrain.h \
@@ -31,4 +35,6 @@ HEADERS += \
     dirs.h \
     mathconst.h \
     camera.h \
-    macro.h
+    macro.h \
+    menu.h \
+    controller.h
