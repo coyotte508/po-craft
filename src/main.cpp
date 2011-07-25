@@ -133,10 +133,10 @@ int main(int argc, char** argv) {
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
 
+    App.Create(sf::VideoMode(800, 600, 32), "Penguins Craft");
     sf::Image icon;
     icon.LoadFromFile("db/icon.png");
     App.SetIcon(icon.GetWidth(), icon.GetHeight(), icon.GetPixelsPtr());
-    App.Create(sf::VideoMode(800, 600, 32), "Penguins Craft");
 
     handleResize(800, 600);
 
