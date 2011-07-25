@@ -10,10 +10,10 @@ const char * Controller::ident[LastFunction] = {
     "AlternateCamera"
 };
 int Controller::defVal[LastFunction] = {
-    sf::Key::A,
-    sf::Key::D,
     sf::Key::W,
     sf::Key::S,
+    sf::Key::A,
+    sf::Key::D,
     sf::Key::R
 };
 Controller::KeyCodeInitializer Controller::initializer;

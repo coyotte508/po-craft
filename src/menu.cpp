@@ -17,7 +17,7 @@ Menu::Menu(sf::RenderTarget &tar, Controller &ctrl) {
         descs.push_back(new sf::String());
         descs.back()->Move(50, 30 + 60*i);
         keys.push_back(new sf::String());
-        keys.back()->Move(300, 30 + 60*i);
+        keys.back()->Move(320, 30 + 60*i);
     }
 
     layout.push_back(Controller::MoveCharUp);
