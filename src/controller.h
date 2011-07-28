@@ -21,6 +21,8 @@ public:
         MoveCharLeft,
         MoveCharRight,
         AlternateCamera,
+        CameraZoomIn,
+        CameraZoomOut,
         LastFunction
     };
 

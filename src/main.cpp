@@ -49,6 +49,8 @@ void handleSpecialKeypress() {
                             + Right * App.GetInput().IsKeyDown(sf::Key::Down),
                          Left * App.GetInput().IsKeyDown(sf::Key::Left)
                             + Right * App.GetInput().IsKeyDown(sf::Key::Right));
+    game.setCameraZoom(Left * App.GetInput().IsKeyDown(controller.getKey(Controller::CameraZoomOut))
+                            + Right * App.GetInput().IsKeyDown(controller.getKey(Controller::CameraZoomIn)));
     game.setBallDirection(Left * App.GetInput().IsKeyDown(controller.getKey(Controller::MoveCharLeft))
                             + Right * App.GetInput().IsKeyDown(controller.getKey(Controller::MoveCharRight)),
                          Left * App.GetInput().IsKeyDown(controller.getKey(Controller::MoveCharUp))

@@ -7,6 +7,8 @@ const char * Controller::ident[LastFunction] = {
     "MoveCharDown",
     "MoveCharLeft",
     "MoveCharRight",
+    "CameraZoomIn",
+    "CameraZoomOut",
     "AlternateCamera"
 };
 int Controller::defVal[LastFunction] = {
@@ -14,7 +16,9 @@ int Controller::defVal[LastFunction] = {
     sf::Key::S,
     sf::Key::A,
     sf::Key::D,
-    sf::Key::R
+    sf::Key::R,
+    sf::Key::E,
+    sf::Key::Q
 };
 Controller::KeyCodeInitializer Controller::initializer;
 

@@ -18,8 +18,10 @@ public:
     void project(const Terrain &t);
     /* Rotates the camera angle */
     void rotate(float angleXDiff, float angleYDiff);
+    /* Sets the zoom for the 'behind character' view */
+    void zoom(float zoom);
 
-    float angleX, angleY;
+    float angleX, angleY, _zoom;
 };
 
 #ifdef __APPLE__
@@ -38,11 +40,11 @@ template<class T> void Camera::project(const T &xyz) {
 template<class T> void Camera::projectBehind(const T &xyz) {
     /* Genius calculus at work here */
     glRotatef(angleX, 1, 0, 0);
-    glTranslatef(0, 0, -7.f*cos(angleX*PI/180));
+    glTranslatef(0, 0, -_zoom*cos(angleX*PI/180));
     glRotatef(angleY, 0, 1, 0);
-    glTranslatef(0, 0, 7.f*cos(angleX*PI/180));
+    glTranslatef(0, 0, _zoom*cos(angleX*PI/180));
     glRotatef(-angleX, 1, 0, 0);
-    glTranslatef(0,0,-7.f);
+    glTranslatef(0,0,-_zoom);
     glRotatef(angleX, 1, 0, 0);
     glTranslatef(-xyz.x(), -xyz.y(), -xyz.z());
 }

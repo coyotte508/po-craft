@@ -13,29 +13,34 @@ Menu::Menu(sf::RenderTarget &tar, Controller &ctrl) {
     isRunning = false;
     current = 0;
     selectedColor = sf::Color(107,196,227);
-    for (int i = 0; i < 5; i++) {
-        descs.push_back(new sf::String());
-        descs.back()->Move(50, 30 + 60*i);
-        keys.push_back(new sf::String());
-        keys.back()->Move(320, 30 + 60*i);
-    }
 
     layout.push_back(Controller::MoveCharUp);
     layout.push_back(Controller::MoveCharDown);
     layout.push_back(Controller::MoveCharLeft);
     layout.push_back(Controller::MoveCharRight);
     layout.push_back(Controller::AlternateCamera);
+    layout.push_back(Controller::CameraZoomIn);
+    layout.push_back(Controller::CameraZoomOut);
+
+    for (int i = 0; i < layout.size(); i++) {
+        descs.push_back(new sf::String());
+        descs.back()->Move(50, 30 + 60*i);
+        keys.push_back(new sf::String());
+        keys.back()->Move(320, 30 + 60*i);
+    }
 
     descs[0]->SetText("Move Up: ");
     descs[1]->SetText("Move Down: ");
     descs[2]->SetText("Move Left: ");
     descs[3]->SetText("Move Right: ");
     descs[4]->SetText("Alternate Camera: ");
+    descs[5]->SetText("Camera Zoom In: ");
+    descs[6]->SetText("Camera Zoom Out: ");
 }
 
 void Menu::loadText() {
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < layout.size(); i++) {
         keys[i]->SetText(Controller::getKeyName(controller->getKey(layout[i])));
     }
 }
@@ -110,7 +115,7 @@ void Menu::draw()
 
     target->PreserveOpenGLStates(true);
     /* Draw the menu stuff */
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < layout.size(); i++) {
         target->Draw(*descs[i]);
         target->Draw(*keys[i]);
     }
@@ -124,13 +129,13 @@ void Menu::draw()
 }
 
 void Menu::increaseCurrent() {
-    current = (current + 1) %5;
+    current = (current + 1) % layout.size();
 
     resetColors();
 }
 
 void Menu::decreaseCurrent() {
-    current = (current + 4) %5;
+    current = (current + layout.size()-1) % layout.size();
 
     resetColors();
 }

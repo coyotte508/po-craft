@@ -13,9 +13,9 @@
 
 Game::Game() {
     xDir = zDir = 0;
-    cameraRotateDirectionX = cameraRotateDirectionY = Center;
+    cameraZoomDirection = cameraRotateDirectionX = cameraRotateDirectionY = Center;
     terrain = NULL;
-    cameraMode = OnTerrain;
+    cameraMode = BehindCharacter;
 }
 
 Game::~Game() {
@@ -72,6 +72,10 @@ void Game::setCameraRotate(int x, int y)
     cameraRotateDirectionY = y;
 }
 
+void Game::setCameraZoom(int directionForward) {
+    cameraZoomDirection = directionForward;
+}
+
 void Game::alternateCameraMode()
 {
     cameraMode += 1;
@@ -84,6 +88,7 @@ void Game::alternateCameraMode()
 void Game::update(int time)
 {
     camera.rotate(time * .08f * cameraRotateDirectionX, time * .08f * cameraRotateDirectionY);
+    camera.zoom(time * .03f * cameraZoomDirection);
 
     if (xDir || zDir) {
         float div = 1.0f;

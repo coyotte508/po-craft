@@ -3,6 +3,7 @@
 
 Camera::Camera() {
     angleX = angleY = 0;
+    _zoom = 7.f;
 }
 
 void Camera::project(const Terrain &terrain) {
@@ -25,5 +26,15 @@ void Camera::rotate(float a1, float a2) {
         angleY -= 360;
     } else if (angleY < 0) {
         angleY += 360;
+    }
+}
+
+void Camera::zoom(float zoom) {
+    _zoom -= zoom;
+
+    if (_zoom < 2.0f) {
+        _zoom = 2.0f;
+    } else if (_zoom > 50.f) {
+        _zoom = 50.f;
     }
 }
