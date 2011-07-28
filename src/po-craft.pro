@@ -22,7 +22,8 @@ SOURCES += \
     game.cpp \
     camera.cpp \
     menu.cpp \
-    controller.cpp
+    controller.cpp \
+    debug-val.cpp
 
 HEADERS += \
     terrain.h \
@@ -37,4 +38,5 @@ HEADERS += \
     camera.h \
     macro.h \
     menu.h \
-    controller.h
+    controller.h \
+    debug-val.h

@@ -20,6 +20,7 @@
 #include "dirs.h"
 #include "menu.h"
 #include "controller.h"
+#include "debug-val.h"
 
 typedef void (*TimerFunc)(int elapsed);
 
@@ -79,12 +80,31 @@ void handleResize(int w, int h) {
     gluPerspective(45.0, (float)w / (float)h, 0.1f, 300.f);
 }
 
+template<class T>
+void drawVal (const std::string &desc, T val) {
+    std::ostringstream oss;
+    oss << desc << val;
+    std::string str = oss.str();
+
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_LIGHTING);
+    glColor3f(1.0f, 1.0f, 0.0f);
+    glPushMatrix();
+    glTranslatef(0.0f, 1.7f, -5.0f);
+    glScalef(0.2f, 0.2f, 0.2f);
+    t3dDraw2D(str, 0, 0);
+    glPopMatrix();
+    glEnable(GL_LIGHTING);
+}
+
 void drawScene() {
+    drawVal("Vector: ", DebugVal::debug);
     game.draw();
+drawVal("Vector: ", DebugVal::debug);
     if (menu.running()) {
         menu.draw();
     }
-
+drawVal("Vector: ", DebugVal::debug);
     App.Display();
 }
 
@@ -142,7 +162,7 @@ int main(int argc, char** argv) {
 
     handleResize(800, 600);
 
-    game.loadTerrain("db/maps/heightmap.png", 30.f, TERRAIN_WIDTH);
+    game.loadTerrain("db/maps/heightmap.png", 15.f, TERRAIN_WIDTH);
 
     initRendering();
     timerFunc(TIMER_MS, update);

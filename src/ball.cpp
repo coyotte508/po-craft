@@ -60,7 +60,7 @@ void Ball::advance(float xdiff, float zdiff)
     checkPos();
 
     if (terrain) {
-        y() = terrain->heightAt(x(), z()) + radius;
+        y() = terrain->heightAt(x(), z(), radius) + radius;
     } else {
         y() = radius;
     }

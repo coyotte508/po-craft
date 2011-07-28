@@ -24,6 +24,8 @@ public:
     float getHeight(int x, int z);
 
     float heightAt(float x, float z);
+    /* Complexity: radius^2*/
+    float heightAt(float x, float z, float radius);
 
     //Computes the normals, if they haven't been computed yet
     void computeNormals();
@@ -42,11 +44,14 @@ public:
 private:
     //Computes the offset in the array from x and z given
     int offset(int x, int z);
+    //Gets the d member of the plane equation at point (x,z)
+    float plane(int x, int z);
 
     int w; //Width
     int l; //Length
     float* hs; //Heights
     Vec3f* normals;
+    float* planeOffsets; //used in conjunction to the normals to calculate the distance to a plane
     bool computedNormals; //Whether normals is up-to-date
     float scale, scaledWidth, scaledLength;
 };

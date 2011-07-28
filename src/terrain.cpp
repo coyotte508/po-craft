@@ -9,6 +9,7 @@
 #include <string>
 #include <QImage>
 #include "terrain.h"
+#include "debug-val.h"
 
 Terrain::Terrain(int w2, int l2)
 {
@@ -20,6 +21,7 @@ Terrain::Terrain(int w2, int l2)
 
     hs = new float[l*w];
     normals = new Vec3f[l*w];
+    planeOffsets = new float[l*w];
 
     std::fill(hs, hs+l*w, 0.f);
     std::fill(normals, normals+l*w, Vec3f(0.f, 1.f, 0.f));
@@ -31,6 +33,7 @@ Terrain::~Terrain()
 {
     delete[] hs;
     delete[] normals;
+    delete[] planeOffsets;
 }
 
 //Computes the normals, if they haven't been computed yet
@@ -103,6 +106,7 @@ void Terrain::computeNormals() {
                 sum = Vec3f(0.0f, 1.0f, 0.0f);
             }
             normals[offset(x, z)] = sum;
+            planeOffsets[offset(x,z)] = -Vec3f(x, getHeight(x, z), z).dot(sum);
         }
     }
 
@@ -153,6 +157,65 @@ float Terrain::heightAt(float x, float z)
             fracX * ((1 - fracZ) * h21 + fracZ * h22)) * scale;
 }
 
+/* Can be optimized */
+float Terrain::heightAt(float x, float z, float radius)
+{
+    float minHeight = heightAt(x, z)/scale;
+
+    x/=scale;
+    z/=scale;
+    radius/=scale;
+    float radius2 = radius*radius;
+
+    Vec3f spherePos(x, minHeight+radius,z);
+
+    int xlim = x+radius+1.f;
+    int zlim = z+radius+1.f;
+    /* Complexity: radius^2 */
+    for (int i = std::max(int(x-radius), 0); i <= xlim && i < rawWidth(); i++) {
+        for (int j = std::max(int(z-radius), 0); j <= zlim && j < rawLength(); j++) {
+            float h = getHeight(i, j);
+            if (h <= minHeight) {
+                continue;
+            }
+            if (i+1 < rawWidth() && j+1 < rawLength()
+                    && i < xlim && j < zlim) {
+                /* Lets do a plane check */
+                Vec3f v1(1, getHeight(x+1,z)-getHeight(x, z), 0);
+                Vec3f v2(0, getHeight(x,z+1)-getHeight(x, z), 1);
+                Vec3f normal = v1.cross(v2).normalize();
+                float p = -Vec3f(x, getHeight(x, z), z).dot(normal);
+                if (p < 0) {
+                    p=-p;
+                    normal=-normal;
+                }
+                float dis = normal.dot(spherePos)+p;
+                if (dis < 0) {
+                    dis = -dis;
+                }
+                if (dis < radius) {
+                    DebugVal::debug = normal;
+                    Vec3f pInt = spherePos-dis*normal;
+                    minHeight = sqrt(radius2-(spherePos[0]-pInt[0])*(spherePos[0]-pInt[0])
+                                     -(spherePos[2]-pInt[2])*(spherePos[2]-pInt[2]));
+                    spherePos[1] = minHeight+radius;
+                }
+            }
+
+            float hordis = (i-x)*(i-x) +(j-z)*(j-z);
+            if (hordis >= radius2) {
+                continue;
+            }
+            if (hordis+(minHeight+radius-h)*(minHeight+radius-h)<radius2) {
+                minHeight = sqrt(radius2-hordis)-radius+h;
+                spherePos[1] = minHeight+radius;
+            }
+        }
+    }
+
+    return minHeight*scale;
+}
+
 Terrain *Terrain::loadTerrain(const std::string &filename, float height, float side)
 {
     QImage image(filename.c_str());
@@ -162,6 +225,12 @@ Terrain *Terrain::loadTerrain(const std::string &filename, float height, float s
     }
 
     Terrain* t = new Terrain(image.width(), image.height());
+
+    t->scale = side/(t->rawWidth()-1);
+    t->scaledWidth = (t->rawWidth()-1)*t->scale;
+    t->scaledLength = (t->rawLength()-1)*t->scale;
+    height /= t->scale;
+
     for(int y = 0; y < image.height(); y++) {
         for(int x = 0; x < image.width(); x++) {
             unsigned char color = image.bits()[4 * (y * image.width() + x)];
@@ -171,9 +240,6 @@ Terrain *Terrain::loadTerrain(const std::string &filename, float height, float s
     }
 
     t->computeNormals();
-    t->scale = side/(t->rawWidth()-1);
-    t->scaledWidth = (t->rawWidth()-1)*t->scale;
-    t->scaledLength = (t->rawLength()-1)*t->scale;
     return t;
 }
 
