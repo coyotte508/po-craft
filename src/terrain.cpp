@@ -160,16 +160,6 @@ float Terrain::heightAt(float x, float z)
     }
 
     return (-normal[0]*x-normal[2]*z-plane)/normal[1]*scale;
-
-    //Compute the four heights for the grid cell
-    float h11 = getHeight(leftX, outZ);
-    float h12 = getHeight(leftX, outZ + 1);
-    float h21 = getHeight(leftX + 1, outZ);
-    float h22 = getHeight(leftX + 1, outZ + 1);
-
-    //Take a weighted average of the four heights
-    return ((1 - fracX) * ((1 - fracZ) * h11 + fracZ * h12) +
-            fracX * ((1 - fracZ) * h21 + fracZ * h22)) * scale;
 }
 
 /* Can be optimized */
