@@ -5,6 +5,6 @@
 using namespace std;
 
 ostream &operator<<(ostream &output, const Vec3f &v) {
-    cout << '(' << v[0] << ", " << v[1] << ", " << v[2] << ')';
+    output << '(' << v[0] << ", " << v[1] << ", " << v[2] << ')';
     return output;
 }

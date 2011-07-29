@@ -146,6 +146,21 @@ float Terrain::heightAt(float x, float z)
     }
     float fracZ = z - outZ;
 
+    Vec3f normal;
+    float plane;
+
+    if (fracX + fracZ <= 1) {
+        normal = -Vec3f(1, getHeight(leftX + 1, outZ)-getHeight(leftX, outZ), 0).
+                cross(Vec3f(0, getHeight(leftX, outZ+1)-getHeight(leftX, outZ), 1));
+        plane = -normal.dot(Vec3f(leftX, getHeight(leftX, outZ), outZ));
+    } else {
+        normal = Vec3f(1, getHeight(leftX+1, outZ+1) - getHeight(leftX, outZ+1), 0).
+                cross(Vec3f(0, getHeight(leftX+1, outZ+1)-getHeight(leftX+1, outZ), 1));
+        plane = -normal.dot(Vec3f(leftX+1, getHeight(leftX+1, outZ+1), outZ+1));
+    }
+
+    return (-normal[0]*x-normal[2]*z-plane)/normal[1]*scale;
+
     //Compute the four heights for the grid cell
     float h11 = getHeight(leftX, outZ);
     float h12 = getHeight(leftX, outZ + 1);
@@ -160,12 +175,15 @@ float Terrain::heightAt(float x, float z)
 /* Can be optimized */
 float Terrain::heightAt(float x, float z, float radius)
 {
+    DebugVal::active = false;
     float minHeight = heightAt(x, z)/scale;
 
     x/=scale;
     z/=scale;
     radius/=scale;
     float radius2 = radius*radius;
+
+    DebugVal::iniHeight = minHeight;
 
     Vec3f spherePos(x, minHeight+radius,z);
 
@@ -185,7 +203,7 @@ float Terrain::heightAt(float x, float z, float radius)
                 Vec3f v2(0, getHeight(x,z+1)-getHeight(x, z), 1);
                 Vec3f normal = v1.cross(v2).normalize();
                 float p = -Vec3f(x, getHeight(x, z), z).dot(normal);
-                if (p < 0) {
+                if (normal[1] < 0) {
                     p=-p;
                     normal=-normal;
                 }
@@ -194,11 +212,26 @@ float Terrain::heightAt(float x, float z, float radius)
                     dis = -dis;
                 }
                 if (dis < radius) {
-                    DebugVal::debug = normal;
                     Vec3f pInt = spherePos-dis*normal;
-                    minHeight = sqrt(radius2-(spherePos[0]-pInt[0])*(spherePos[0]-pInt[0])
-                                     -(spherePos[2]-pInt[2])*(spherePos[2]-pInt[2]));
-                    spherePos[1] = minHeight+radius;
+                    float minH = pInt[1]+ sqrt(radius2-(spherePos[0]-pInt[0])*(spherePos[0]-pInt[0])
+                                     -(spherePos[2]-pInt[2])*(spherePos[2]-pInt[2]))-radius;
+                    if (minH > minHeight) {
+                        DebugVal::debug2 = spherePos-pInt;
+                        DebugVal::insideS = radius2-(spherePos[0]-pInt[0])*(spherePos[0]-pInt[0])
+                                -(spherePos[2]-pInt[2])*(spherePos[2]-pInt[2]);
+                        DebugVal::debug = normal;
+                        DebugVal::dis = dis;
+                        DebugVal::dis2 = radius;
+                        DebugVal::radius2 = radius2;
+                        DebugVal::p = p;
+                        DebugVal::intHeight = minHeight;
+                        DebugVal::endHeight = minH;
+                        DebugVal::pInt = pInt;
+
+                        minHeight=minH;
+                        spherePos[1] = minHeight+radius;
+                        DebugVal::active = true;
+                    }
                 }
             }
 

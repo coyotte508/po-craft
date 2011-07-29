@@ -17,6 +17,7 @@ public:
     float operator[](int index) const;
 
     Vec3f operator*(float scale) const;
+    Vec3f operator*(const Vec3f &other) const;
     Vec3f operator/(float scale) const;
     Vec3f operator+(const Vec3f &other) const;
     Vec3f operator-(const Vec3f &other) const;

@@ -82,29 +82,38 @@ void handleResize(int w, int h) {
 
 template<class T>
 void drawVal (const std::string &desc, T val) {
+//    if (!DebugVal::active) {
+//        return;
+//    }
     std::ostringstream oss;
-    oss << desc << val;
+//    oss << desc << val << ", distance: " << DebugVal::dis << ", radius: " << DebugVal::dis2 << ", p: " << DebugVal::p
+//        << ", diff: " << DebugVal::debug2 << "\nInside: " << DebugVal::insideS << ", Radius2: " << DebugVal::radius2
+//        << ", iniheight: " << DebugVal::iniHeight << ", intheight: " << DebugVal::intHeight <<
+//           ", endheight: " << DebugVal::endHeight << ",pint: " << DebugVal::pInt;
+    oss << "Heights: " << DebugVal::iniHeight << ", " << DebugVal::intHeight << ", " << DebugVal::endHeight;
     std::string str = oss.str();
 
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_LIGHTING);
-    glColor3f(1.0f, 1.0f, 0.0f);
-    glPushMatrix();
-    glTranslatef(0.0f, 1.7f, -5.0f);
-    glScalef(0.2f, 0.2f, 0.2f);
-    t3dDraw2D(str, 0, 0);
-    glPopMatrix();
-    glEnable(GL_LIGHTING);
+    sf::String s(str);
+    s.SetSize(12);
+    App.Draw(s);
+//    glDisable(GL_TEXTURE_2D);
+//    glDisable(GL_LIGHTING);
+//    glColor3f(1.0f, 1.0f, 0.0f);
+//    glPushMatrix();
+//    glTranslatef(0.0f, 1.7f, -5.0f);
+//    glScalef(0.2f, 0.2f, 0.2f);
+//    t3dDraw2D(str, 0, 0);
+//    glPopMatrix();
+//    glEnable(GL_LIGHTING);
 }
 
 void drawScene() {
-    drawVal("Vector: ", DebugVal::debug);
     game.draw();
-drawVal("Vector: ", DebugVal::debug);
+    App.PreserveOpenGLStates(true);
+    drawVal("Normal:", DebugVal::debug);
     if (menu.running()) {
         menu.draw();
     }
-drawVal("Vector: ", DebugVal::debug);
     App.Display();
 }
 

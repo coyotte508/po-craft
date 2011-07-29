@@ -26,6 +26,10 @@ inline Vec3f Vec3f::operator*(float scale) const {
     return Vec3f(v[0] * scale, v[1] * scale, v[2] * scale);
 }
 
+inline Vec3f Vec3f::operator*(const Vec3f &other) const {
+    return Vec3f(v[0] * other[0], v[1] * other[1], v[2] * other[2]);
+}
+
 inline Vec3f Vec3f::operator/(float scale) const {
     return Vec3f(v[0] / scale, v[1] / scale, v[2] / scale);
 }
