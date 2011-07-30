@@ -170,6 +170,72 @@ float Terrain::heightAt(float x, float z)
     return (-normal[0]*x-normal[2]*z-plane)/normal[1]*scale;
 }
 
+/* This commented function does both newHeight and newHeight2 depending on whether dir is 1 or -1.
+  However, for optimization's sake, let's use newHeight and newHeight2 instead */
+//inline void newHeight(Vec3f &spherePos, float &minHeight, int x, int z, float h0, float h10, float h01, float radius, int dir=1) {
+//    Vec3f normal = -Vec3f(1*dir, h10-h0, 0).cross(Vec3f(0, h01-h0, 1*dir)).normalize();
+
+//    float dis = (spherePos-Vec3f(x,h0,z)).dot(normal);
+//    float absDis = dis < 0 ? - dis : dis;
+
+//    if (absDis > radius) {
+//        return;
+//    }
+
+//    /* Now let's get the point of intersection the closest to the center of the sphere */
+//    Vec3f pInt = spherePos - dis * normal;
+
+//    /* Let's check if it's in the triangle */
+//    if (pInt[0]*dir < x*dir || pInt[2]*dir < z*dir || (pInt[0]-x + pInt[2]-z)*dir > 1) {
+//        if (pInt[0]*dir < x*dir) {
+//            if (pInt[2]*dir < z*dir) {
+//                /* It intersects with the (x,z) summit */
+//                pInt[0] = x;
+//                pInt[2] = z;
+//            } else if (pInt[2]*dir > (z + 1*dir)*dir) {
+//                pInt[0] = x;
+//                pInt[2] = z+1*dir;
+//            } else {
+//                /* Intersects with the (x,z) (x,z+1) verticle */
+//                pInt[0] = x;
+//            }
+//        } else if (pInt[2]*dir < z*dir) {
+//            /* We already know pInt[0] > x, so only two possibilities */
+//            if (pInt[0]*dir > (x + 1*dir)*dir) {
+//                pInt[0] = x + 1*dir;
+//                pInt[2] = z;
+//            } else {
+//                pInt[2] = z;
+//            }
+//        } else {
+//            /* Trouble: the third, annoying verticle is the one to be intersected */
+//            float dotproduct = (1 * (pInt[0]-x) - 1 * (pInt[2]-(z+1*dir)))*dir;
+
+//            if (dotproduct < 0) {
+//                pInt[0] = x;
+//                pInt[2] = z+1*dir;
+//            } else if (dotproduct > 2) {
+//                pInt[0] = x+1*dir;
+//                pInt[2] = z;
+//            } else {
+//                pInt[0] = x + dotproduct/2*dir;
+//                pInt[2] = z - 1 - dotproduct/2*dir;
+//            }
+//        }
+//        float p = -normal.dot(Vec3f(x,h0,z));
+//        pInt[1] = (-normal[0]*pInt[0]-normal[2]*pInt[2]-p)/normal[1];
+//    }
+
+//    float hordis = (pInt[0]-spherePos[0])*(pInt[0]-spherePos[0])+(pInt[2]-spherePos[2])*(pInt[2]-spherePos[2]);
+//    if (hordis < radius*radius) {
+//        float h = sqrt(radius*radius-hordis)-radius+pInt[1];
+//        if (h > minHeight) {
+//            minHeight = h;
+//            spherePos[1] = minHeight+radius;
+//        }
+//    }
+//}
+
 inline void newHeight(Vec3f &spherePos, float &minHeight, int x, int z, float h0, float h10, float h01, float radius) {
     Vec3f normal = -Vec3f(1, h10-h0, 0).cross(Vec3f(0, h01-h0, 1)).normalize();
 
@@ -302,15 +368,12 @@ inline void newHeight2(Vec3f &spherePos, float &minHeight, int x1, int z1, float
 /* Can be optimized */
 float Terrain::heightAt(float x, float z, float radius)
 {
-    DebugVal::active = false;
     float minHeight = heightAt(x, z)/scale;
 
     x/=scale;
     z/=scale;
     radius/=scale;
     float radius2 = radius*radius;
-
-    DebugVal::iniHeight = minHeight;
 
     Vec3f spherePos(x, minHeight+radius,z);
 
@@ -326,9 +389,6 @@ float Terrain::heightAt(float x, float z, float radius)
             }
         }
     }
-
-    DebugVal::active = true;
-    DebugVal::iniHeight = minHeight;
 
     return minHeight*scale;
 }
