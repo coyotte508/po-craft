@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <string>
 #include <QImage>
+#include "mathconst.h"
 #include "terrain.h"
 #include "debug-val.h"
 
@@ -21,7 +22,6 @@ Terrain::Terrain(int w2, int l2)
 
     hs = new float[l*w];
     normals = new Vec3f[l*w];
-    planeOffsets = new float[l*w];
 
     std::fill(hs, hs+l*w, 0.f);
     std::fill(normals, normals+l*w, Vec3f(0.f, 1.f, 0.f));
@@ -33,7 +33,6 @@ Terrain::~Terrain()
 {
     delete[] hs;
     delete[] normals;
-    delete[] planeOffsets;
 }
 
 //Computes the normals, if they haven't been computed yet
@@ -106,7 +105,6 @@ void Terrain::computeNormals() {
                 sum = Vec3f(0.0f, 1.0f, 0.0f);
             }
             normals[offset(x, z)] = sum;
-            planeOffsets[offset(x,z)] = -Vec3f(x, getHeight(x, z), z).dot(sum);
         }
     }
 
@@ -149,17 +147,156 @@ float Terrain::heightAt(float x, float z)
     Vec3f normal;
     float plane;
 
+    /* First we check if the point is in the first triangle
+      or the second triangle. This is done by fracX + fracZ
+      being more or less than 1.
+
+      Then we get the plane equation corresponding to the triangle,
+      and use it to get the y coordinate of the point knowing x and z */
     if (fracX + fracZ <= 1) {
-        normal = -Vec3f(1, getHeight(leftX + 1, outZ)-getHeight(leftX, outZ), 0).
-                cross(Vec3f(0, getHeight(leftX, outZ+1)-getHeight(leftX, outZ), 1));
-        plane = -normal.dot(Vec3f(leftX, getHeight(leftX, outZ), outZ));
+        float mh = getHeight(leftX, outZ);
+
+        normal = -Vec3f(1, getHeight(leftX + 1, outZ)-mh, 0).
+                cross(Vec3f(0, getHeight(leftX, outZ+1)-mh, 1));
+        plane = -normal.dot(Vec3f(leftX, mh, outZ));
     } else {
-        normal = Vec3f(1, getHeight(leftX+1, outZ+1) - getHeight(leftX, outZ+1), 0).
-                cross(Vec3f(0, getHeight(leftX+1, outZ+1)-getHeight(leftX+1, outZ), 1));
-        plane = -normal.dot(Vec3f(leftX+1, getHeight(leftX+1, outZ+1), outZ+1));
+        float mh = getHeight(leftX+1, outZ+1);
+
+        normal = Vec3f(1, mh - getHeight(leftX, outZ+1), 0).
+                cross(Vec3f(0, mh-getHeight(leftX+1, outZ), 1));
+        plane = -normal.dot(Vec3f(leftX+1, mh, outZ+1));
     }
 
     return (-normal[0]*x-normal[2]*z-plane)/normal[1]*scale;
+}
+
+inline void newHeight(Vec3f &spherePos, float &minHeight, int x, int z, float h0, float h10, float h01, float radius) {
+    Vec3f normal = -Vec3f(1, h10-h0, 0).cross(Vec3f(0, h01-h0, 1)).normalize();
+
+    float dis = (spherePos-Vec3f(x,h0,z)).dot(normal);
+    float absDis = dis < 0 ? - dis : dis;
+
+    if (absDis > radius) {
+        return;
+    }
+
+    /* Now let's get the point of intersection the closest to the center of the sphere */
+    Vec3f pInt = spherePos - dis * normal;
+
+    /* Let's check if it's in the triangle */
+    if (pInt[0] < x || pInt[2] < z || pInt[0]-x + pInt[2]-z > 1) {
+        if (pInt[0] < x) {
+            if (pInt[2] < z) {
+                /* It intersects with the (x,z) summit */
+                pInt[0] = x;
+                pInt[2] = z;
+            } else if (pInt[2] > z + 1) {
+                pInt[0] = x;
+                pInt[2] = z+1;
+            } else {
+                /* Intersects with the (x,z) (x,z+1) verticle */
+                pInt[0] = x;
+            }
+        } else if (pInt[2] < z) {
+            /* We already know pInt[0] > x, so only two possibilities */
+            if (pInt[0] > x + 1) {
+                pInt[0] = x + 1;
+                pInt[2] = z;
+            } else {
+                pInt[2] = z;
+            }
+        } else {
+            /* Trouble: the third, annoying verticle is the one to be intersected */
+            float dotproduct = (1 * (pInt[0]-x) - 1 * (pInt[2]-(z+1)));
+
+            if (dotproduct < 0) {
+                pInt[0] = x;
+                pInt[2] = z+1;
+            } else if (dotproduct > 2) {
+                pInt[0] = x+1;
+                pInt[2] = z;
+            } else {
+                pInt[0] = x + dotproduct/2;
+                pInt[2] = z - 1 - dotproduct/2;
+            }
+        }
+        float p = -normal.dot(Vec3f(x,h0,z));
+        pInt[1] = (-normal[0]*pInt[0]-normal[2]*pInt[2]-p)/normal[1];
+    }
+
+    float hordis = (pInt[0]-spherePos[0])*(pInt[0]-spherePos[0])+(pInt[2]-spherePos[2])*(pInt[2]-spherePos[2]);
+    if (hordis < radius*radius) {
+        float h = sqrt(radius*radius-hordis)-radius+pInt[1];
+        if (h > minHeight) {
+            minHeight = h;
+            spherePos[1] = minHeight+radius;
+        }
+    }
+}
+
+inline void newHeight2(Vec3f &spherePos, float &minHeight, int x1, int z1, float h11, float h10, float h01, float radius) {
+    Vec3f normal = -Vec3f(1, h11-h01, 0).cross(Vec3f(0, h11-h10, 1)).normalize();
+
+    float dis = (spherePos-Vec3f(x1,h11,z1)).dot(normal);
+    float absDis = dis < 0 ? - dis : dis;
+
+    if (absDis > radius) {
+        return;
+    }
+
+    /* Now let's get the point of intersection the closest to the center of the sphere */
+    Vec3f pInt = spherePos - dis * normal;
+
+    /* Let's check if it's in the triangle */
+    if (pInt[0] > x1 || pInt[2] > z1 || pInt[0]-x1 + pInt[2]-z1 < -1) {
+        if (pInt[0] > x1) {
+            if (pInt[2] > z1) {
+                /* It intersects with the (x1,z1) summit */
+                pInt[0] = x1;
+                pInt[2] = z1;
+            } else if (pInt[2] < z1-1) {
+                pInt[0] = x1;
+                pInt[2] = z1-1;
+            } else {
+                /* Intersects with the (x1,z1-1) (x1,z1) verticle */
+                pInt[0] = x1;
+            }
+        } else if (pInt[2] > z1) {
+            /* We already know pInt[0] < x1, so only two possibilities */
+            if (pInt[0] < x1-1) {
+                pInt[0] = x1-1;
+                pInt[2] = z1;
+            } else {
+                pInt[2] = z1;
+            }
+        } else {
+            ///NOT DONE
+            /* Trouble: the third, annoying verticle is the one to be intersected */
+            float dotproduct = (1 * (pInt[0]-(x1-1)) - 1 * (pInt[2]-(z1)));
+
+            if (dotproduct < 0) {
+                pInt[0] = x1-1;
+                pInt[2] = z1;
+            } else if (dotproduct > 2) {
+                pInt[0] = x1;
+                pInt[2] = z1-1;
+            } else {
+                pInt[0] = x1 -1 + dotproduct/2;
+                pInt[2] = z1 - dotproduct/2;
+            }
+        }
+        float p = -normal.dot(Vec3f(x1,h11,z1));
+        pInt[1] = (-normal[0]*pInt[0]-normal[2]*pInt[2]-p)/normal[1];
+    }
+
+    float hordis = (pInt[0]-spherePos[0])*(pInt[0]-spherePos[0])+(pInt[2]-spherePos[2])*(pInt[2]-spherePos[2]);
+    if (hordis < radius*radius) {
+        float h = sqrt(radius*radius-hordis)-radius+pInt[1];
+        if (h > minHeight) {
+            minHeight = h;
+            spherePos[1] = minHeight+radius;
+        }
+    }
 }
 
 /* Can be optimized */
@@ -182,59 +319,16 @@ float Terrain::heightAt(float x, float z, float radius)
     /* Complexity: radius^2 */
     for (int i = std::max(int(x-radius), 0); i <= xlim && i < rawWidth(); i++) {
         for (int j = std::max(int(z-radius), 0); j <= zlim && j < rawLength(); j++) {
-            float h = getHeight(i, j);
-            if (h <= minHeight) {
-                continue;
-            }
             if (i+1 < rawWidth() && j+1 < rawLength()
                     && i < xlim && j < zlim) {
-                /* Lets do a plane check */
-                Vec3f v1(1, getHeight(x+1,z)-getHeight(x, z), 0);
-                Vec3f v2(0, getHeight(x,z+1)-getHeight(x, z), 1);
-                Vec3f normal = v1.cross(v2).normalize();
-                float p = -Vec3f(x, getHeight(x, z), z).dot(normal);
-                if (normal[1] < 0) {
-                    p=-p;
-                    normal=-normal;
-                }
-                float dis = normal.dot(spherePos)+p;
-                if (dis < 0) {
-                    dis = -dis;
-                }
-                if (dis < radius) {
-                    Vec3f pInt = spherePos-dis*normal;
-                    float minH = pInt[1]+ sqrt(radius2-(spherePos[0]-pInt[0])*(spherePos[0]-pInt[0])
-                                     -(spherePos[2]-pInt[2])*(spherePos[2]-pInt[2]))-radius;
-                    if (minH > minHeight) {
-                        DebugVal::debug2 = spherePos-pInt;
-                        DebugVal::insideS = radius2-(spherePos[0]-pInt[0])*(spherePos[0]-pInt[0])
-                                -(spherePos[2]-pInt[2])*(spherePos[2]-pInt[2]);
-                        DebugVal::debug = normal;
-                        DebugVal::dis = dis;
-                        DebugVal::dis2 = radius;
-                        DebugVal::radius2 = radius2;
-                        DebugVal::p = p;
-                        DebugVal::intHeight = minHeight;
-                        DebugVal::endHeight = minH;
-                        DebugVal::pInt = pInt;
-
-                        minHeight=minH;
-                        spherePos[1] = minHeight+radius;
-                        DebugVal::active = true;
-                    }
-                }
-            }
-
-            float hordis = (i-x)*(i-x) +(j-z)*(j-z);
-            if (hordis >= radius2) {
-                continue;
-            }
-            if (hordis+(minHeight+radius-h)*(minHeight+radius-h)<radius2) {
-                minHeight = sqrt(radius2-hordis)-radius+h;
-                spherePos[1] = minHeight+radius;
+                newHeight(spherePos, minHeight, i, j, getHeight(i, j), getHeight(i+1, j), getHeight(i, j+1), radius);
+                newHeight2(spherePos, minHeight, i+1, j+1, getHeight(i+1, j+1), getHeight(i+1, j), getHeight(i, j+1), radius);
             }
         }
     }
+
+    DebugVal::active = true;
+    DebugVal::iniHeight = minHeight;
 
     return minHeight*scale;
 }
@@ -284,5 +378,21 @@ void Terrain::draw()
         }
         glEnd();
     }
+#if 0
+    /* Wireframe mode */
+    glDisable(GL_LIGHTING);
+    glColor3f(1.f, 1.f, 1.f);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    for(int z = 0; z < rawLength() - 1; z++) {
+        glBegin(GL_TRIANGLE_STRIP);
+        for(int x = 0; x < rawWidth(); x++) {
+            glVertex3f(x, getHeight(x, z)+.1, z);
+            glVertex3f(x, getHeight(x, z + 1)+.1, z + 1);
+        }
+        glEnd();
+    }
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_LIGHTING);
+#endif
     glPopMatrix();
 }

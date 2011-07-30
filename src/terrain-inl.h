@@ -47,9 +47,4 @@ inline int Terrain::offset(int x, int z) {
     return z*rawWidth() + x;
 }
 
-//Gets the d member of the plane equation associated to the (x, z) point
-inline float Terrain::plane(int x, int z) {
-    return planeOffsets[offset(x, z)];
-}
-
 #endif // TERRAININL_H

@@ -82,15 +82,15 @@ void handleResize(int w, int h) {
 
 template<class T>
 void drawVal (const std::string &desc, T val) {
-//    if (!DebugVal::active) {
-//        return;
-//    }
+    if (!DebugVal::active) {
+        return;
+    }
     std::ostringstream oss;
 //    oss << desc << val << ", distance: " << DebugVal::dis << ", radius: " << DebugVal::dis2 << ", p: " << DebugVal::p
 //        << ", diff: " << DebugVal::debug2 << "\nInside: " << DebugVal::insideS << ", Radius2: " << DebugVal::radius2
 //        << ", iniheight: " << DebugVal::iniHeight << ", intheight: " << DebugVal::intHeight <<
 //           ", endheight: " << DebugVal::endHeight << ",pint: " << DebugVal::pInt;
-    oss << "Heights: " << DebugVal::iniHeight << ", " << DebugVal::intHeight << ", " << DebugVal::endHeight;
+    oss << "Heights: " << DebugVal::iniHeight << ", " << DebugVal::intHeight << ", " << DebugVal::endHeight << ", Normal: " << DebugVal::debug;
     std::string str = oss.str();
 
     sf::String s(str);
