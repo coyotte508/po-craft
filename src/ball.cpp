@@ -1,11 +1,6 @@
-#ifdef __APPLE__
-#include <OpenGL/OpenGL.h>
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
 #include <cfloat>
 
+#include "engine.h"
 #include "ball.h"
 #include "terrain.h"
 #include "vec3f.h"
@@ -45,10 +40,13 @@ void Ball::checkPos()
 
 void Ball::draw()
 {
-    glColor3f(0.3f, 0.3f, 0.9f);
     glPushMatrix();
     glTranslatef(x(), y(), z());
-    glutSolidSphere(radius, 15, 15);
+
+    glColor3f(0.9f, 0.3f, 0.3f);
+    Engine::drawHemisphere(radius);
+    glColor3f(1.f, 1.f, 1.f);
+    Engine::drawHemisphere(-radius);
     glPopMatrix();
 }
 
