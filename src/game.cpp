@@ -92,10 +92,14 @@ void Game::update(int time)
             div = SQRT2INV;
         }
 
-        div *= time * 0.007f;
+        div *= 0.00007f;
 
         float sina = sin(camera.angleY*PI/180);
         float cosa = cos(camera.angleY*PI/180);
-        ball.advance( (xDir * cosa - zDir * sina)*div, (zDir * cosa + xDir * sina)*div );
+        ball.setAcceleration((xDir * cosa - zDir * sina)*div, (zDir * cosa + xDir * sina)*div);
+    } else {
+        ball.setAcceleration(0, 0);
     }
+
+    ball.advance(time);
 }

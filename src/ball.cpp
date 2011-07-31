@@ -11,6 +11,11 @@ Ball::Ball(float radius) : pos(radius, radius, radius), angleInit(false)
     this->radius = radius;
     this->terrain = NULL;
 
+    maxVelocity = 0.06;
+    maxVelocityS = maxVelocity*maxVelocity;
+    friction = 0.2;
+    weight = .00005;
+
     std::fill(rotationMatrix, rotationMatrix+16, 0);
     rotationMatrix[0] = rotationMatrix[5] = rotationMatrix[10] = rotationMatrix[15] = 1;
 }
@@ -19,7 +24,7 @@ void Ball::setTerrain(Terrain *terrain)
 {
     this->terrain = terrain;
 
-    advance(0, 0);
+    advance(0);
     angleInit = true;
 }
 
@@ -57,12 +62,52 @@ void Ball::draw()
     glPopMatrix();
 }
 
-void Ball::advance(float xdiff, float zdiff)
+void Ball::setAcceleration(float xacc, float zacc) {
+    accX() = xacc;
+    accZ() = zacc;
+}
+
+void Ball::advance(int time)
 {
     Vec3f oldpos = pos;
+    float v = velocity.magnitude();
 
-    x() += xdiff;
-    z() += zdiff;
+    /* Friction resistance */
+    if (v > FLT_EPSILON) {
+        float resX = - weight * friction * velX()/v;
+        float resZ = - weight * friction * velZ()/v;
+
+        bool sigx = velX() > 0;
+        bool sigz = velZ() > 0;
+
+        velX() += resX*time;
+        velZ() += resZ*time;
+
+        /* If the friction caused the item to change direction,
+          instead it stops */
+        if (sigx != velX() > 0) {
+            velX() = 0;
+        }
+
+        if (sigz != velZ() > 0) {
+            velZ() = 0;
+        }
+
+        v = velocity.magnitude();
+    }
+
+    /* Only use own acceleration if we're not too fast */
+    if (v < maxVelocity) {
+        velX() += accX()*time;
+        velZ() += accZ()*time;
+
+        if (velocity.magnitudeSquared() > maxVelocityS) {
+            velocity = velocity * (maxVelocity/velocity.magnitude());
+        }
+    }
+
+    x() += velX()*time;
+    z() += velZ()*time;
 
     checkPos();
 
