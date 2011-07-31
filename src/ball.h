@@ -20,10 +20,16 @@ public:
 
     float radius;
     Vec3f pos;
+    Vec3f angle;
 
     SETVEC3FCOORDS(pos, x, y, z)
 private:
     Terrain *terrain;
+    bool angleInit;
+    /* Too lazy to calculate rotations manually,
+      so using opengl's rotatef utility and storing
+      a large matrix */
+    float rotationMatrix[16];
 };
 
 #endif // BALL_H

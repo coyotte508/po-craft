@@ -33,6 +33,9 @@ public:
     Vec3f normalize() const;
     float dot(const Vec3f &other) const;
     Vec3f cross(const Vec3f &other) const;
+    /* returns dist^2 */
+    float dist2(const Vec3f &other) const;
+    float dist(const Vec3f &other) const;
 };
 
 Vec3f operator*(float scale, const Vec3f &v);

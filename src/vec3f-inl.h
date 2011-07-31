@@ -101,4 +101,12 @@ inline Vec3f operator*(float scale, const Vec3f &v) {
     return v * scale;
 }
 
+inline float Vec3f::dist2(const Vec3f &other) const {
+    return (v[0]-other[0])*(v[0]-other[0])+(v[1]-other[1])*(v[1]-other[1])+(v[2]-other[2])*(v[2]-other[2]);
+}
+
+inline float Vec3f::dist(const Vec3f &other) const {
+    return sqrt(dist2(other));
+}
+
 #endif // VEC3FINL_H
