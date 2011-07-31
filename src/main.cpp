@@ -68,6 +68,7 @@ void initRendering() {
     glEnable(GL_LIGHT0);
     glEnable(GL_NORMALIZE);
     glEnable(GL_COLOR_MATERIAL);
+    glClearColor(0, 191.f/255, 1.f, 1.f);
     glShadeModel(GL_SMOOTH);
 
     t3dInit();
@@ -108,9 +109,11 @@ void drawVal (const std::string &desc, T val) {
 }
 
 void drawScene() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
     game.draw();
     App.PreserveOpenGLStates(true);
-    drawVal("Normal:", DebugVal::debug);
     if (menu.running()) {
         menu.draw();
     }

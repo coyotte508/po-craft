@@ -28,11 +28,6 @@ void Game::loadTerrain(const std::string &filename, float height, float width) {
 }
 
 void Game::draw() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
     if (!terrain) {
         return;
     }
