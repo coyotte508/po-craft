@@ -2,8 +2,9 @@
 #include "terrain.h"
 
 Camera::Camera() {
-    angleX = angleY = 0;
-    _zoom = 7.f;
+    angleX = 10;
+    angleY = 135;
+    _zoom = 12.f;
 }
 
 void Camera::project(const Terrain &terrain) {
