@@ -6,7 +6,7 @@ CONFIG(windows) {
     LIBS += -lopengl32 -lglu32 -lglut32 -lSDL -lSDLmain
 }
 !CONFIG(windows) {
-    LIBS += -lglut -lGL -lGLU -lX11 -lm -lSDL -lSDL_ttf
+    LIBS += -lglut -lGL -lGLU -lX11 -lm -lSDL
 }
 
 LIBS += -lsfml-graphics -lsfml-window -lsfml-system
