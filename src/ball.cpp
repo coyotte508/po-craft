@@ -11,7 +11,7 @@ Ball::Ball(float radius) : pos(radius, radius, radius), angleInit(false)
     this->radius = radius;
     this->terrain = NULL;
 
-    maxVelocity = 0.06;
+    maxVelocity = 0.03;
     maxVelocityS = maxVelocity*maxVelocity;
     friction = 0.2;
     weight = .00005;
@@ -85,11 +85,11 @@ void Ball::advance(int time)
 
         /* If the friction caused the item to change direction,
           instead it stops */
-        if (sigx != velX() > 0) {
+        if (sigx != (velX() > 0)) {
             velX() = 0;
         }
 
-        if (sigz != velZ() > 0) {
+        if (sigz != (velZ() > 0)) {
             velZ() = 0;
         }
 
