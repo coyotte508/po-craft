@@ -21,11 +21,27 @@ public:
     //Sets the height at (x, z) to y
     void setHeight(int x, int z, float y);
     //Returns the height at (x, z)
-    float getHeight(int x, int z);
+    float getHeight(int x, int z) const;
 
-    float heightAt(float x, float z);
-    /* Complexity: radius^2*/
-    float heightAt(float x, float z, float radius);
+    float heightAt(float x, float z) const;
+    /**
+     * Gives the height if a ball with the given radius
+     * had its center at the given x/z points.
+     *
+     * pInt is set to the collision point with the terrain,
+     * if needed, otherwise just (x, height, z).
+     *
+     * Complexity: radius^2
+    */
+    float heightAt(float x, float z, float radius, Vec3f *pInt=NULL) const;
+    /**
+     * Gives the normal calculated dynamically at this precise point.
+     * The normal isn't averaged in the least, contrary to light normals
+     * and their fallout ratio.
+     *
+     * Used for collision & all.
+     */
+    Vec3f normalAt(float x, float z) const;
 
     //Computes the normals, if they haven't been computed yet
     void computeNormals();
@@ -43,7 +59,7 @@ public:
     static Terrain *loadTerrain(const std::string &filename, float height, float width);
 private:
     //Computes the offset in the array from x and z given
-    int offset(int x, int z);
+    int offset(int x, int z) const;
 
     int w; //Width
     int l; //Length

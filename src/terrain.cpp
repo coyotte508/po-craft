@@ -113,7 +113,7 @@ void Terrain::computeNormals() {
     computedNormals = true;
 }
 
-float Terrain::heightAt(float x, float z)
+float Terrain::heightAt(float x, float z) const
 {
     x/=scale;
     z/=scale;
@@ -236,7 +236,7 @@ float Terrain::heightAt(float x, float z)
 //    }
 //}
 
-inline void newHeight(Vec3f &spherePos, float &minHeight, int x, int z, float h0, float h10, float h01, float radius) {
+inline void newHeight(Vec3f &spherePos, float &minHeight, int x, int z, float h0, float h10, float h01, float radius, Vec3f *_pInt) {
     Vec3f normal = -Vec3f(1, h10-h0, 0).cross(Vec3f(0, h01-h0, 1)).normalize();
 
     float dis = (spherePos-Vec3f(x,h0,z)).dot(normal);
@@ -296,11 +296,14 @@ inline void newHeight(Vec3f &spherePos, float &minHeight, int x, int z, float h0
         if (h > minHeight) {
             minHeight = h;
             spherePos[1] = minHeight+radius;
+            if (_pInt) {
+                *_pInt = pInt;
+            }
         }
     }
 }
 
-inline void newHeight2(Vec3f &spherePos, float &minHeight, int x1, int z1, float h11, float h10, float h01, float radius) {
+inline void newHeight2(Vec3f &spherePos, float &minHeight, int x1, int z1, float h11, float h10, float h01, float radius, Vec3f *_pInt) {
     Vec3f normal = -Vec3f(1, h11-h01, 0).cross(Vec3f(0, h11-h10, 1)).normalize();
 
     float dis = (spherePos-Vec3f(x1,h11,z1)).dot(normal);
@@ -361,21 +364,24 @@ inline void newHeight2(Vec3f &spherePos, float &minHeight, int x1, int z1, float
         if (h > minHeight) {
             minHeight = h;
             spherePos[1] = minHeight+radius;
+            if (_pInt) {
+                *_pInt = pInt;
+            }
         }
     }
 }
 
 /* Can be optimized */
-float Terrain::heightAt(float x, float z, float radius)
+float Terrain::heightAt(float x, float z, float radius, Vec3f *_pInt) const
 {
     float minHeight = heightAt(x, z)/scale;
 
     x/=scale;
     z/=scale;
     radius/=scale;
-    float radius2 = radius*radius;
 
     Vec3f spherePos(x, minHeight+radius,z);
+    Vec3f pInt(x, z, minHeight);
 
     int xlim = x+radius+1.f;
     int zlim = z+radius+1.f;
@@ -384,13 +390,43 @@ float Terrain::heightAt(float x, float z, float radius)
         for (int j = std::max(int(z-radius), 0); j <= zlim && j < rawLength(); j++) {
             if (i+1 < rawWidth() && j+1 < rawLength()
                     && i < xlim && j < zlim) {
-                newHeight(spherePos, minHeight, i, j, getHeight(i, j), getHeight(i+1, j), getHeight(i, j+1), radius);
-                newHeight2(spherePos, minHeight, i+1, j+1, getHeight(i+1, j+1), getHeight(i+1, j), getHeight(i, j+1), radius);
+                newHeight(spherePos, minHeight, i, j, getHeight(i, j), getHeight(i+1, j), getHeight(i, j+1), radius, &pInt);
+                newHeight2(spherePos, minHeight, i+1, j+1, getHeight(i+1, j+1), getHeight(i+1, j), getHeight(i, j+1), radius, &pInt);
             }
         }
     }
 
+    if (_pInt) {
+        *_pInt = pInt * scale;
+    }
+
     return minHeight*scale;
+}
+
+Vec3f Terrain::normalAt(float x, float z) const
+{
+    x/= scale;
+    z/= scale;
+
+    float xrem = x - int(x);
+    float zrem = z - int(z);
+    x = int(x);
+    z = int(z);
+
+    if (x+1 >= rawWidth()) {
+        x -= 1;
+    }
+    if (z+1 >= rawLength()) {
+        z -= 1;
+    }
+
+    if (xrem+zrem < 1.f) {
+        /* First triangle of the square */
+        return -Vec3f(1, getHeight(x+1,z)-getHeight(x, z), 0).cross(Vec3f(0, getHeight(x,z+1)-getHeight(x, z), 1)).normalize();
+    } else {
+        /* Second triangle */
+        return -Vec3f(1, getHeight(x+1, z+1)-getHeight(x, z+1), 0).cross(Vec3f(0, getHeight(x+1, z+1)-getHeight(x+1,z), 1)).normalize();
+    }
 }
 
 Terrain *Terrain::loadTerrain(const std::string &filename, float height, float side)

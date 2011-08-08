@@ -12,7 +12,7 @@ inline Vec3f Terrain::getNormal(int x, int z) {
 }
 
 //Returns the height at (x, z)
-inline float Terrain::getHeight(int x, int z) {
+inline float Terrain::getHeight(int x, int z) const {
     return hs[offset(x, z)];
 }
 
@@ -43,7 +43,7 @@ inline float Terrain::length() const {
 }
 
 //Computes the offset in the array from x and z given
-inline int Terrain::offset(int x, int z) {
+inline int Terrain::offset(int x, int z) const {
     return z*rawWidth() + x;
 }
 

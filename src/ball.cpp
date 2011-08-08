@@ -63,30 +63,55 @@ void Ball::draw()
 }
 
 void Ball::setAcceleration(float xacc, float zacc) {
-    accX() = xacc;
-    accZ() = zacc;
+    acceleration = Vec3f(xacc, 0, zacc);
+}
+
+/* Rotates a vector to not go inside the plane given by the normal anymore */
+inline Vec3f rotateVector(const Vec3f &d, const Vec3f &normal)
+{
+    if (d.magnitudeSquared() < FLT_EPSILON) {
+        return d;
+    }
+    Vec3f axis = d.cross(normal).normalize();
+    return normal.cross(axis) * d.magnitude();
 }
 
 void Ball::advance(int time)
 {
     Vec3f oldpos = pos;
+
+    if (terrain) {
+        Vec3f normal = terrain->normalAt(x(), z());
+        if (normal.dot(velocity) <= 0) {
+            velocity = rotateVector(velocity, normal);
+        }
+        acceleration = rotateVector(acceleration, normal);
+    }
+
     float v = velocity.magnitude();
 
     /* Friction resistance */
     if (v > FLT_EPSILON) {
         float resX = - weight * friction * velX()/v;
+        float resY = - weight * friction * velY()/v;
         float resZ = - weight * friction * velZ()/v;
 
         bool sigx = velX() > 0;
+        bool sigy = velY() > 0;
         bool sigz = velZ() > 0;
 
         velX() += resX*time;
+        velY() += resY*time;
         velZ() += resZ*time;
 
         /* If the friction caused the item to change direction,
           instead it stops */
         if (sigx != (velX() > 0)) {
             velX() = 0;
+        }
+
+        if (sigy != (velY() > 0)) {
+            velY() = 0;
         }
 
         if (sigz != (velZ() > 0)) {
@@ -99,6 +124,7 @@ void Ball::advance(int time)
     /* Only use own acceleration if we're not too fast */
     if (v < maxVelocity) {
         velX() += accX()*time;
+        velY() += accY()*time;
         velZ() += accZ()*time;
 
         if (velocity.magnitudeSquared() > maxVelocityS) {
@@ -107,6 +133,7 @@ void Ball::advance(int time)
     }
 
     x() += velX()*time;
+    y() += velY()*time;
     z() += velZ()*time;
 
     checkPos();
