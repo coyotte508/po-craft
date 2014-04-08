@@ -210,15 +210,11 @@ int main(int argc, char** argv) {
                     gb->menu.handleKeyPress(event.key);
                     continue;
                 }
-                if (event.key.code == sf::Keyboard::Escape) {
-                    running = false;
-                    break;
-                }
                 if (event.key.code == gb->controller.getKey(Controller::AlternateCamera)) {
                     gb->game.alternateCameraMode();
                     continue;
                 }
-                if (event.key.code == sf::Keyboard::F2) {
+                if (event.key.code == sf::Keyboard::F2 || event.key.code == sf::Keyboard::Escape) {
                     gb->menu.start();
                     continue;
                 }

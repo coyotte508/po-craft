@@ -1,7 +1,8 @@
-DESTDIR = bin
+DESTDIR = $$PWD/bin
+
+INCLUDEPATH += include/
 
 CONFIG(windows) {
-    INCLUDEPATH += include/windows/
     LIBS += -L"$$PWD/lib/windows/"
     LIBS += -lopengl32 -lglu32
 }
@@ -12,11 +13,15 @@ CONFIG(windows) {
 CONFIG += c++11
 
 #adds debug suffix to libraries when compiled
-CONFIG(debug, debug|release) {
+windows:CONFIG(debug, debug|release) {
     exesuffix=-d
 } else {
     exesuffix=
 }
+unix:!mac {
+    QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN'"
+}
+
 
 LIBS += -lsfml-graphics$$exesuffix -lsfml-window$$exesuffix -lsfml-system$$exesuffix
 
