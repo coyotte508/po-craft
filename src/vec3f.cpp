@@ -1,6 +1,6 @@
 /* See vec3f-inl.h */
-#include "vec3f.h"
 #include <iostream>
+#include "vec3f.h"
 
 using namespace std;
 

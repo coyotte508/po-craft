@@ -17,15 +17,15 @@ public:
     bool running();
 private:
     bool isRunning;
-    int current;
+    unsigned current; /* Current item in the menu layout */
 
     void increaseCurrent();
     void decreaseCurrent();
     void resetColors();
     void loadText();
 
-    std::vector<sf::String*> descs;
-    std::vector<sf::String*> keys;
+    std::vector<sf::Text*> descs;
+    std::vector<sf::Text*> keys;
     sf::Font font;
     Controller *controller;
     sf::RenderTarget *target;

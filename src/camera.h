@@ -1,6 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include "gl.h"
 #include "mathconst.h"
 #include <cmath>
 
@@ -23,13 +24,6 @@ public:
 
     float angleX, angleY, _zoom;
 };
-
-#ifdef __APPLE__
-#include <OpenGL/OpenGL.h>
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
 
 template<class T> void Camera::project(const T &xyz) {
     glRotatef(angleX, 1, 0, 0);

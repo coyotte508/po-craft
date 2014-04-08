@@ -6,3 +6,6 @@ bin/po-craft
 bin/db/maps/heightmap*.png
 bin/*.ini
 *__Debug
+Makefile*
+build-*
+debug

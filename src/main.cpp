@@ -1,15 +1,7 @@
-#include <SDL/SDL.h>
 #include <SFML/Graphics.hpp>
-#ifdef main
-#undef main
-#endif
 #include <QSettings>
-#ifdef __APPLE__
-#include <OpenGL/OpenGL.h>
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
+#include "glu.h"
+
 #include <cstdlib>
 #include <cstdio>
 #include <sstream>
@@ -25,37 +17,60 @@
 typedef void (*TimerFunc)(int elapsed);
 
 struct TimeContainer {
-    Uint32 timeStarted;
-    Uint32 timeExpected;
+    quint32 timeStarted;
+    quint32 timeExpected;
     TimerFunc function;
 };
 
 //The number of milliseconds between calls to update
 const int TIMER_MS = 25;
-Game game;
+
 std::vector<TimeContainer> timeFuncs;
 bool needDraw = false;
-sf::RenderWindow App;
+
 //The width of the terrain in units, after scaling
 const float TERRAIN_WIDTH = 100.0f;
-Controller controller;
-Menu menu(App, controller);
+
+namespace {
+    struct globalObjects {
+        globalObjects() : menu(window, controller) {
+        }
+
+        Controller controller;
+        sf::RenderWindow window;
+        Menu menu;
+        Game game;
+    };
+    globalObjects *gb = nullptr;
+}
 
 void cleanup() {
     t3dCleanup();
+    delete gb, gb = nullptr;
+}
+
+quint32 SDL_GetTicks()
+{
+    static sf::Clock clock;
+    return clock.getElapsedTime().asMilliseconds();
+}
+
+void SDL_Delay(int ms)
+{
+    sf::sleep(sf::milliseconds(ms));
 }
 
 void handleSpecialKeypress() {
-    game.setCameraRotate(Left * App.GetInput().IsKeyDown(sf::Key::Up)
-                            + Right * App.GetInput().IsKeyDown(sf::Key::Down),
-                         Left * App.GetInput().IsKeyDown(sf::Key::Left)
-                            + Right * App.GetInput().IsKeyDown(sf::Key::Right));
-    game.setCameraZoom(Left * App.GetInput().IsKeyDown(controller.getKey(Controller::CameraZoomOut))
-                            + Right * App.GetInput().IsKeyDown(controller.getKey(Controller::CameraZoomIn)));
-    game.setBallDirection(Left * App.GetInput().IsKeyDown(controller.getKey(Controller::MoveCharLeft))
-                            + Right * App.GetInput().IsKeyDown(controller.getKey(Controller::MoveCharRight)),
-                         Left * App.GetInput().IsKeyDown(controller.getKey(Controller::MoveCharUp))
-                            + Right * App.GetInput().IsKeyDown(controller.getKey(Controller::MoveCharDown)));
+    gb->game.setCameraRotate(Left * sf::Keyboard::isKeyPressed(sf::Keyboard::Up)
+                            + Right * sf::Keyboard::isKeyPressed(sf::Keyboard::Down),
+                         Left * sf::Keyboard::isKeyPressed(sf::Keyboard::Left)
+                            + Right * sf::Keyboard::isKeyPressed(sf::Keyboard::Right));
+    gb->game.setCameraZoom(Left * sf::Keyboard::isKeyPressed(gb->controller.getKey(Controller::CameraZoomOut))
+                            + Right * sf::Keyboard::isKeyPressed(gb->controller.getKey(Controller::CameraZoomIn)));
+    gb->game.setBallDirection(Left * sf::Keyboard::isKeyPressed(gb->controller.getKey(Controller::MoveCharLeft))
+                            + Right * sf::Keyboard::isKeyPressed(gb->controller.getKey(Controller::MoveCharRight)),
+                         Left * sf::Keyboard::isKeyPressed(gb->controller.getKey(Controller::MoveCharUp))
+                            + Right * sf::Keyboard::isKeyPressed(gb->controller.getKey(Controller::MoveCharDown)));
 }
 
 void postRedisplay() {
@@ -95,8 +110,7 @@ void drawVal (const std::string &desc, T val) {
     std::string str = oss.str();
 
     sf::String s(str);
-    s.SetSize(12);
-    App.Draw(s);
+    gb->window.draw(sf::Text(s, sf::Font(), 12));
 //    glDisable(GL_TEXTURE_2D);
 //    glDisable(GL_LIGHTING);
 //    glColor3f(1.0f, 1.0f, 0.0f);
@@ -112,12 +126,13 @@ void drawScene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    game.draw();
-    App.PreserveOpenGLStates(true);
-    if (menu.running()) {
-        menu.draw();
+    gb->game.draw();
+    gb->window.pushGLStates();
+    if (gb->menu.running()) {
+        gb->menu.draw();
     }
-    App.Display();
+    gb->window.popGLStates();
+    gb->window.display();
 }
 
 void timerFunc(int ms, TimerFunc func) {
@@ -147,7 +162,7 @@ void pauseTimers() {
         SDL_Delay(1);
     } else {
         TimeContainer &ref = timeFuncs.front();
-        Uint32 ticks = SDL_GetTicks();
+        quint32 ticks = SDL_GetTicks();
         if (ticks < ref.timeExpected) {
             SDL_Delay(ref.timeExpected-SDL_GetTicks());
         }
@@ -155,26 +170,27 @@ void pauseTimers() {
 }
 
 void update(int time) {
-    game.update(time);
+    gb->game.update(time);
     postRedisplay();
     timerFunc(TIMER_MS, update);
 }
 
 int main(int argc, char** argv) {
+    (void) argc;
+    (void) argv;
+
     srand((unsigned int)time(0)); //Seed the random number generator
 
-    glutInit(&argc, argv);
+    gb = new globalObjects();
 
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
-
-    App.Create(sf::VideoMode(800, 600, 32), "Penguins Craft");
+    gb->window.create(sf::VideoMode(800, 600, 32), "Penguins Craft");
     sf::Image icon;
-    icon.LoadFromFile("db/icon.png");
-    App.SetIcon(icon.GetWidth(), icon.GetHeight(), icon.GetPixelsPtr());
+    icon.loadFromFile("db/icon.png");
+    gb->window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
     handleResize(800, 600);
 
-    game.loadTerrain("db/maps/heightmap.png", 15.f, TERRAIN_WIDTH);
+    gb->game.loadTerrain("db/maps/heightmap.png", 15.f, TERRAIN_WIDTH);
 
     initRendering();
     timerFunc(TIMER_MS, update);
@@ -183,35 +199,35 @@ int main(int argc, char** argv) {
 
     bool running = true;
     while (running) {
-        sf::Event Event;
-        while (App.GetEvent(Event)) {
-            if (Event.Type == Event.Closed) {
+        sf::Event event;
+        while (gb->window.pollEvent(event)) {
+            if (event.type == event.Closed) {
                 running = false;
                 break;
             }
-            if (Event.Type == Event.KeyPressed) {
-                if (menu.running()) {
-                    menu.handleKeyPress(Event.Key);
+            if (event.type == event.KeyPressed) {
+                if (gb->menu.running()) {
+                    gb->menu.handleKeyPress(event.key);
                     continue;
                 }
-                if (Event.Key.Code == sf::Key::Escape) {
+                if (event.key.code == sf::Keyboard::Escape) {
                     running = false;
                     break;
                 }
-                if (Event.Key.Code == controller.getKey(Controller::AlternateCamera)) {
-                    game.alternateCameraMode();
+                if (event.key.code == gb->controller.getKey(Controller::AlternateCamera)) {
+                    gb->game.alternateCameraMode();
                     continue;
                 }
-                if (Event.Key.Code == sf::Key::F2) {
-                    menu.start();
+                if (event.key.code == sf::Keyboard::F2) {
+                    gb->menu.start();
                     continue;
                 }
             }
-            if (Event.Type == Event.Resized) {
-                handleResize(Event.Size.Width, Event.Size.Height);
+            if (event.type == event.Resized) {
+                handleResize(event.size.width, event.size.height);
                 continue;
             }
-            if (Event.Type == Event.KeyPressed || Event.Type == Event.KeyReleased) {
+            if (event.type == event.KeyPressed || event.type == event.KeyReleased) {
                 handleSpecialKeypress();
                 continue;
             }

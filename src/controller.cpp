@@ -12,18 +12,18 @@ const char * Controller::ident[LastFunction] = {
     "AlternateCamera"
 };
 int Controller::defVal[LastFunction] = {
-    sf::Key::W,
-    sf::Key::S,
-    sf::Key::A,
-    sf::Key::D,
-    sf::Key::R,
-    sf::Key::E,
-    sf::Key::Q
+    sf::Keyboard::W,
+    sf::Keyboard::S,
+    sf::Keyboard::A,
+    sf::Keyboard::D,
+    sf::Keyboard::R,
+    sf::Keyboard::E,
+    sf::Keyboard::Q
 };
 Controller::KeyCodeInitializer Controller::initializer;
 
 Controller::KeyCodeInitializer::KeyCodeInitializer() {
-#define AutoAttribName(x) Controller::keyNames[sf::Key::x]=#x
+#define AutoAttribName(x) Controller::keyNames[sf::Keyboard::x]=#x
     AutoAttribName(A);
     AutoAttribName(B);
     AutoAttribName(C);
@@ -94,8 +94,8 @@ void Controller::saveControls() {
     }
 }
 
-sf::Key::Code Controller::getKey(int function) {
-    return (sf::Key::Code)keyCodes[function];
+sf::Keyboard::Key Controller::getKey(int function) {
+    return (sf::Keyboard::Key)keyCodes[function];
 }
 
 void Controller::setControl(int function, int key) {

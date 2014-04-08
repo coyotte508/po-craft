@@ -1,9 +1,5 @@
-#ifdef __APPLE__
-#include <OpenGL/OpenGL.h>
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
+#include "glu.h"
+
 #include "menu.h"
 #include "controller.h"
 
@@ -22,26 +18,26 @@ Menu::Menu(sf::RenderTarget &tar, Controller &ctrl) {
     layout.push_back(Controller::CameraZoomIn);
     layout.push_back(Controller::CameraZoomOut);
 
-    for (int i = 0; i < layout.size(); i++) {
-        descs.push_back(new sf::String());
-        descs.back()->Move(50, 30 + 60*i);
-        keys.push_back(new sf::String());
-        keys.back()->Move(320, 30 + 60*i);
+    for (unsigned i = 0; i < layout.size(); i++) {
+        descs.push_back(new sf::Text());
+        descs.back()->move(50, 30 + 60*i);
+        keys.push_back(new sf::Text());
+        keys.back()->move(320, 30 + 60*i);
     }
 
-    descs[0]->SetText("Move Up: ");
-    descs[1]->SetText("Move Down: ");
-    descs[2]->SetText("Move Left: ");
-    descs[3]->SetText("Move Right: ");
-    descs[4]->SetText("Alternate Camera: ");
-    descs[5]->SetText("Camera Zoom In: ");
-    descs[6]->SetText("Camera Zoom Out: ");
+    descs[0]->setString("Move Up: ");
+    descs[1]->setString("Move Down: ");
+    descs[2]->setString("Move Left: ");
+    descs[3]->setString("Move Right: ");
+    descs[4]->setString("Alternate Camera: ");
+    descs[5]->setString("Camera Zoom In: ");
+    descs[6]->setString("Camera Zoom Out: ");
 }
 
 void Menu::loadText() {
 
-    for (int i = 0; i < layout.size(); i++) {
-        keys[i]->SetText(Controller::getKeyName(controller->getKey(layout[i])));
+    for (unsigned i = 0; i < layout.size(); i++) {
+        keys[i]->setString(Controller::getKeyName(controller->getKey(layout[i])));
     }
 }
 
@@ -51,8 +47,8 @@ void deleteOp(T *stuff) {
 }
 
 Menu::~Menu() {
-    std::for_each(descs.begin(), descs.end(), deleteOp<sf::String>);
-    std::for_each(keys.begin(), keys.end(), deleteOp<sf::String>);
+    std::for_each(descs.begin(), descs.end(), deleteOp<sf::Text>);
+    std::for_each(keys.begin(), keys.end(), deleteOp<sf::Text>);
     descs.clear();
     keys.clear();
 }
@@ -69,26 +65,26 @@ void Menu::start() {
 }
 
 void Menu::handleKeyPress(sf::Event::KeyEvent &e) {
-    if (e.Code == sf::Key::Escape) {
+    if (e.code == sf::Keyboard::Escape) {
         controller->loadControls();
         isRunning = false;
         return;
     }
-    if (e.Code == sf::Key::Return) {
+    if (e.code == sf::Keyboard::Return) {
         controller->saveControls();
         isRunning = false;
         return;
     }
-    if (e.Code == sf::Key::Up) {
+    if (e.code == sf::Keyboard::Up) {
         decreaseCurrent();
         return;
     }
-    if (e.Code == sf::Key::Down) {
+    if (e.code == sf::Keyboard::Down) {
         increaseCurrent();
         return;
     }
-    controller->setControl(layout[current], e.Code);
-    keys[current]->SetText(Controller::getKeyName(controller->getKey(layout[current])));
+    controller->setControl(layout[current], e.code);
+    keys[current]->setString(Controller::getKeyName(controller->getKey(layout[current])));
 }
 
 void Menu::draw()
@@ -113,12 +109,13 @@ void Menu::draw()
     glVertex3f(800, 0, 0);
     glEnd();
 
-    target->PreserveOpenGLStates(true);
+    target->pushGLStates();
     /* Draw the menu stuff */
-    for (int i = 0; i < layout.size(); i++) {
-        target->Draw(*descs[i]);
-        target->Draw(*keys[i]);
+    for (unsigned i = 0; i < layout.size(); i++) {
+        target->draw(*descs[i]);
+        target->draw(*keys[i]);
     }
+    target->popGLStates();
 
     /* Switch back to 3D Mode */
     glEnable(GL_LIGHTING);
@@ -141,11 +138,11 @@ void Menu::decreaseCurrent() {
 }
 
 void Menu::resetColors() {
-    for (int i = 0; i < descs.size(); i++) {
+    for (unsigned i = 0; i < descs.size(); i++) {
         if (current != i) {
-            descs[i]->SetColor(sf::Color(255,255,255));
+            descs[i]->setColor(sf::Color(255,255,255));
         } else {
-            descs[i]->SetColor(selectedColor);
+            descs[i]->setColor(selectedColor);
         }
     }
 }

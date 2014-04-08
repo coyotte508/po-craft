@@ -1,8 +1,7 @@
 #ifdef __APPLE__
-#include <OpenGL/OpenGL.h>
-#include <GLUT/glut.h>
+#include <OpenGL/gl.h>
 #else
-#include <GL/glut.h>
+#include <GL/gl.h>
 #endif
 
 #include "game.h"

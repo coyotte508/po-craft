@@ -90,15 +90,9 @@
  * of the model, counterclockwise order is relative to the front face.
  */
 
+#include "gl.h"
 #include <fstream>
 #include <math.h>
-
-#ifdef __APPLE__
-#include <OpenGL/OpenGL.h>
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
 
 #include "text3d.h"
 

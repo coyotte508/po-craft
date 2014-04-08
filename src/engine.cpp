@@ -1,7 +1,7 @@
 #include <QImage>
+#include <cmath>
 #include "engine.h"
 #include "mathconst.h"
-#include <cmath>
 
 GLuint Engine::loadTexture(const char *filepath) {
     QImage image(filepath);

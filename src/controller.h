@@ -9,7 +9,7 @@ public:
     Controller();
     void loadControls();
     void saveControls();
-    sf::Key::Code getKey(int function);
+    sf::Keyboard::Key getKey(int function);
     int getFunction(int key);
     void setControl(int function, int key);
 
