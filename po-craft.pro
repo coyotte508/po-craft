@@ -30,13 +30,13 @@ SOURCES += \
     src/terrain.cpp \
     src/vec3f.cpp \
     src/ball.cpp \
-    src/text3d.cpp \
     src/game.cpp \
     src/camera.cpp \
     src/menu.cpp \
     src/controller.cpp \
     src/debug-val.cpp \
-    src/engine.cpp
+    src/engine.cpp \
+    src/resources.cpp
 
 HEADERS += \
     src/terrain.h \
@@ -44,7 +44,6 @@ HEADERS += \
     src/vec3f.h \
     src/vec3f-inl.h \
     src/ball.h \
-    src/text3d.h \
     src/game.h \
     src/dirs.h \
     src/mathconst.h \
@@ -55,4 +54,5 @@ HEADERS += \
     src/debug-val.h \
     src/engine.h \
     src/glu.h \
-    src/gl.h
+    src/gl.h \
+    src/resources.h

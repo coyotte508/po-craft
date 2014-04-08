@@ -1,7 +1,6 @@
 #include <QSettings>
 #include "controller.h"
 
-std::map<int, const char*> Controller::keyNames;
 const char * Controller::ident[LastFunction] = {
     "MoveCharUp",
     "MoveCharDown",
@@ -20,10 +19,12 @@ int Controller::defVal[LastFunction] = {
     sf::Keyboard::E,
     sf::Keyboard::Q
 };
-Controller::KeyCodeInitializer Controller::initializer;
 
-Controller::KeyCodeInitializer::KeyCodeInitializer() {
-#define AutoAttribName(x) Controller::keyNames[sf::Keyboard::x]=#x
+const char * Controller::getKeyName(int code) {
+    std::map<int, const char*> keyNames;
+
+    if (keyNames.size() == 0) {
+#define AutoAttribName(x) keyNames[sf::Keyboard::x]=#x
     AutoAttribName(A);
     AutoAttribName(B);
     AutoAttribName(C);
@@ -63,9 +64,7 @@ Controller::KeyCodeInitializer::KeyCodeInitializer() {
     AutoAttribName(Escape);
     AutoAttribName(Space);
 #undef AutoAttribName
-}
-
-const char * Controller::getKeyName(int code) {
+    }
     if (keyNames.count(code) > 0) {
         return keyNames[code];
     } else {

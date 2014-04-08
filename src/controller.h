@@ -27,8 +27,6 @@ public:
     };
 
 private:
-    static std::map<int, const char*> keyNames;
-
     class KeyCodeInitializer {
     public:
         KeyCodeInitializer();

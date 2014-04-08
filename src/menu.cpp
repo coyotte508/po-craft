@@ -1,5 +1,8 @@
 #include "glu.h"
 
+#include <SFML/Graphics.hpp>
+
+#include "resources.h"
 #include "menu.h"
 #include "controller.h"
 
@@ -19,9 +22,9 @@ Menu::Menu(sf::RenderTarget &tar, Controller &ctrl) {
     layout.push_back(Controller::CameraZoomOut);
 
     for (unsigned i = 0; i < layout.size(); i++) {
-        descs.push_back(new sf::Text());
+        descs.push_back(new sf::Text("", gbRes.font()));
         descs.back()->move(50, 30 + 60*i);
-        keys.push_back(new sf::Text());
+        keys.push_back(new sf::Text("", gbRes.font()));
         keys.back()->move(320, 30 + 60*i);
     }
 

@@ -7,10 +7,10 @@
 #include <sstream>
 #include <ctime>
 #include <vector>
-#include "text3d.h"
 #include "game.h"
 #include "dirs.h"
 #include "menu.h"
+#include "resources.h"
 #include "controller.h"
 #include "debug-val.h"
 
@@ -45,7 +45,6 @@ namespace {
 }
 
 void cleanup() {
-    t3dCleanup();
     delete gb, gb = nullptr;
 }
 
@@ -85,8 +84,6 @@ void initRendering() {
     glEnable(GL_COLOR_MATERIAL);
     glClearColor(0, 191.f/255, 1.f, 1.f);
     glShadeModel(GL_SMOOTH);
-
-    t3dInit();
 }
 
 void handleResize(int w, int h) {
@@ -110,7 +107,7 @@ void drawVal (const std::string &desc, T val) {
     std::string str = oss.str();
 
     sf::String s(str);
-    gb->window.draw(sf::Text(s, sf::Font(), 12));
+    gb->window.draw(sf::Text(s, gbRes.font(), 12));
 //    glDisable(GL_TEXTURE_2D);
 //    glDisable(GL_LIGHTING);
 //    glColor3f(1.0f, 1.0f, 0.0f);
